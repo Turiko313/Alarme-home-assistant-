@@ -9,16 +9,8 @@ from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntityFeature,
     CodeFormat,
 )
+from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_VACATION,
-    STATE_ALARM_ARMING,
-    STATE_ALARM_DISARMED,
-    STATE_ALARM_PENDING,
-    STATE_ALARM_TRIGGERED,
-)
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
@@ -48,7 +40,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._entry = entry
         self._attr_unique_id = entry.entry_id
         self._attr_name = "Alarme"
-        self._state = STATE_ALARM_DISARMED
+        self._state = AlarmControlPanelState.DISARMED
         self._last_armed_state = None
         self._timer_handle = None
 
@@ -142,20 +134,24 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
         entity_id = event.data.get("entity_id")
 
-        if self._state not in [STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_ARMED_VACATION]:
+        if self._state not in [
+            AlarmControlPanelState.ARMED_AWAY,
+            AlarmControlPanelState.ARMED_HOME,
+            AlarmControlPanelState.ARMED_VACATION,
+        ]:
             return
 
         is_relevant_sensor = (
-            (self._state == STATE_ALARM_ARMED_AWAY and entity_id in self._away_sensors) or
-            (self._state == STATE_ALARM_ARMED_HOME and entity_id in self._home_sensors) or
-            (self._state == STATE_ALARM_ARMED_VACATION and entity_id in self._vacation_sensors)
+            (self._state == AlarmControlPanelState.ARMED_AWAY and entity_id in self._away_sensors)
+            or (self._state == AlarmControlPanelState.ARMED_HOME and entity_id in self._home_sensors)
+            or (self._state == AlarmControlPanelState.ARMED_VACATION and entity_id in self._vacation_sensors)
         )
 
         if not is_relevant_sensor:
             return
 
         _LOGGER.info("Alarm pending due to sensor %s", entity_id)
-        self._state = STATE_ALARM_PENDING
+        self._state = AlarmControlPanelState.PENDING
         self.async_write_ha_state()
         self._timer_handle = async_call_later(self.hass, self._delay_time, self._trigger_alarm)
 
@@ -163,7 +159,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     def _trigger_alarm(self, now: datetime):
         """Trigger the alarm."""
         _LOGGER.warning("Alarm triggered!")
-        self._state = STATE_ALARM_TRIGGERED
+        self._state = AlarmControlPanelState.TRIGGERED
         self.hass.async_create_task(self._async_execute_actions("turn_on"))
         self.async_write_ha_state()
         self._timer_handle = async_call_later(self.hass, self._trigger_time, self._post_trigger_action)
@@ -177,7 +173,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             self._state = self._last_armed_state
         else:
             _LOGGER.info("Disarming alarm after trigger.")
-            self._state = STATE_ALARM_DISARMED
+            self._state = AlarmControlPanelState.DISARMED
         self.async_write_ha_state()
 
     async def _async_execute_actions(self, service: str):
@@ -211,11 +207,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
                 return
 
         # If we reach here, disarming is successful
-        if self._state == STATE_ALARM_TRIGGERED:
+        if self._state == AlarmControlPanelState.TRIGGERED:
             self.hass.async_create_task(self._async_execute_actions("turn_off"))
 
         _LOGGER.info("Alarm disarmed")
-        self._state = STATE_ALARM_DISARMED
+        self._state = AlarmControlPanelState.DISARMED
         self._last_armed_state = None
         self._cancel_timer()
         self.async_write_ha_state()
@@ -232,7 +228,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._cancel_timer()
         self._last_armed_state = state
         _LOGGER.info("Alarm arming to %s in %s seconds", state, self._arming_time)
-        self._state = STATE_ALARM_ARMING
+        self._state = AlarmControlPanelState.ARMING
         self.async_write_ha_state()
         self._timer_handle = async_call_later(self.hass, self._arming_time, self._finish_arming)
 
@@ -244,12 +240,12 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home command."""
-        await self._arm(STATE_ALARM_ARMED_HOME, code)
+        await self._arm(AlarmControlPanelState.ARMED_HOME, code)
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
-        await self._arm(STATE_ALARM_ARMED_AWAY, code)
+        await self._arm(AlarmControlPanelState.ARMED_AWAY, code)
 
     async def async_alarm_arm_vacation(self, code: str | None = None) -> None:
         """Send arm vacation command."""
-        await self._arm(STATE_ALARM_ARMED_VACATION, code)
+        await self._arm(AlarmControlPanelState.ARMED_VACATION, code)
