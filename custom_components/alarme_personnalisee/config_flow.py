@@ -82,6 +82,18 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                     description={"suggested_value": options.get("code")},
                 ): str,
                 vol.Optional(
+                    "require_arm_code",
+                    description={"suggested_value": options.get("require_arm_code", False)},
+                ): bool,
+                vol.Optional(
+                    "require_disarm_code",
+                    description={"suggested_value": options.get("require_disarm_code", True)},
+                ): bool,
+                vol.Optional(
+                    "emergency_code",
+                    description={"suggested_value": options.get("emergency_code")},
+                ): str,
+                vol.Optional(
                     "arming_time",
                     description={"suggested_value": options.get("arming_time", 30)},
                 ): int,
