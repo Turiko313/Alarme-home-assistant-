@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Configuration de l'Alarme Personnalisée",
-        "description": "Veuillez sélectionner les capteurs pour chaque mode d'alarme.",
+        "description": "Sélectionnez les capteurs à surveiller dans chaque mode.",
         "data": {
           "away_sensors": "Capteurs pour le mode Absent",
           "home_sensors": "Capteurs pour le mode Présent",
@@ -12,15 +12,21 @@
       }
     },
     "abort": {
-      "already_configured": "Cette alarme est déjà configurée."
+      "already_configured": "Ce panneau d'alarme est déjà configuré."
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Options de l'Alarme Personnalisée",
-        "description": "Mettez à jour les capteurs pour chaque mode d'alarme.",
+        "description": "Configurez ici les délais, le code PIN et les capteurs de l'alarme.",
         "data": {
+          "code": "Code PIN (optionnel)",
+          "arming_time": "Délai d'activation (secondes)",
+          "delay_time": "Délai d'entrée (secondes)",
+          "trigger_time": "Durée de déclenchement (secondes)",
+          "rearm_after_trigger": "Réarmer automatiquement après déclenchement",
+          "trigger_actions": "Actions au déclenchement (lumières, sirènes, etc.)",
           "away_sensors": "Capteurs pour le mode Absent",
           "home_sensors": "Capteurs pour le mode Présent",
           "vacation_sensors": "Capteurs pour le mode Vacances"
