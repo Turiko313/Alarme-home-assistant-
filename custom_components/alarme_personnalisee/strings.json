@@ -21,7 +21,10 @@
         "title": "Custom Alarm Options",
         "description": "Here you can configure the alarm delays, PIN code, and sensor mappings.",
         "data": {
-          "code": "PIN Code (optional)",
+          "code": "PIN Code",
+          "require_arm_code": "Require PIN to arm",
+          "require_disarm_code": "Require PIN to disarm",
+          "emergency_code": "Emergency Code (optional)",
           "arming_time": "Arming Time (seconds)",
           "delay_time": "Entry Delay (seconds)",
           "trigger_time": "Trigger Duration (seconds)",

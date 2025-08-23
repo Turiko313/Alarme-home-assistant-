@@ -64,6 +64,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         options = self._entry.options
         data = self._entry.data
         self._code = options.get("code", "")
+        self._require_arm_code = options.get("require_arm_code", False)
+        self._require_disarm_code = options.get("require_disarm_code", True)
+        self._emergency_code = options.get("emergency_code", "")
         self._arming_time = options.get("arming_time", 30)
         self._delay_time = options.get("delay_time", 30)
         self._trigger_time = options.get("trigger_time", 180)
@@ -99,7 +102,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     @property
     def code_arm_required(self) -> bool:
         """Whether the code is required for arming."""
-        return False
+        return self._require_arm_code
 
     @property
     def supported_features(self) -> AlarmControlPanelEntityFeature:
@@ -192,10 +195,22 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
-        if self._code and code != self._code:
-            _LOGGER.warning("Invalid code provided for disarming")
-            return
+        # Check for emergency code first
+        if self._emergency_code and code == self._emergency_code:
+            _LOGGER.warning("Emergency code used to disarm alarm!")
+            self.hass.bus.async_fire(f"{DOMAIN}.urgence", {"entity_id": self.entity_id})
+            # Disarm without further checks
 
+        # Check for regular code if required
+        elif self._require_disarm_code:
+            if not self._code:
+                _LOGGER.warning("Disarm requires a code, but none is set.")
+                return
+            if code != self._code:
+                _LOGGER.warning("Invalid code provided for disarming.")
+                return
+
+        # If we reach here, disarming is successful
         if self._state == STATE_ALARM_TRIGGERED:
             self.hass.async_create_task(self._async_execute_actions("turn_off"))
 
@@ -205,7 +220,15 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._cancel_timer()
         self.async_write_ha_state()
 
-    async def _arm(self, state: str):
+    async def _arm(self, state: str, code: str | None = None):
+        if self._require_arm_code:
+            if not self._code:
+                _LOGGER.warning("Arming requires a code, but none is set.")
+                return
+            if code != self._code:
+                _LOGGER.warning("Invalid code provided for arming.")
+                return
+
         self._cancel_timer()
         self._last_armed_state = state
         _LOGGER.info("Alarm arming to %s in %s seconds", state, self._arming_time)
@@ -221,12 +244,12 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home command."""
-        await self._arm(STATE_ALARM_ARMED_HOME)
+        await self._arm(STATE_ALARM_ARMED_HOME, code)
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
-        await self._arm(STATE_ALARM_ARMED_AWAY)
+        await self._arm(STATE_ALARM_ARMED_AWAY, code)
 
     async def async_alarm_arm_vacation(self, code: str | None = None) -> None:
         """Send arm vacation command."""
-        await self._arm(STATE_ALARM_ARMED_VACATION)
+        await self._arm(STATE_ALARM_ARMED_VACATION, code)

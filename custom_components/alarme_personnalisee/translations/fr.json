@@ -21,7 +21,10 @@
         "title": "Options de l'Alarme Personnalisée",
         "description": "Configurez ici les délais, le code PIN et les capteurs de l'alarme.",
         "data": {
-          "code": "Code PIN (optionnel)",
+          "code": "Code PIN",
+          "require_arm_code": "Exiger le code PIN pour l'armement",
+          "require_disarm_code": "Exiger le code PIN pour le désarmement",
+          "emergency_code": "Code d'urgence (optionnel)",
           "arming_time": "Délai d'activation (secondes)",
           "delay_time": "Délai d'entrée (secondes)",
           "trigger_time": "Durée de déclenchement (secondes)",
