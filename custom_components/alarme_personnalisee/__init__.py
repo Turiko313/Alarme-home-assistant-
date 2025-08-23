@@ -32,8 +32,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     frontend.async_register_panel(
         hass,
-        PANEL_WEB_COMPONENT,
         PANEL_URL_PATH,
+        PANEL_WEB_COMPONENT,
         PANEL_TITLE,
         PANEL_ICON,
         js_url=js_url,
