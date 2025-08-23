@@ -14,10 +14,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.ALARM_CONTROL_PANEL]
-PANEL_URL = "alarme-personnalisee"
-PANEL_WEBCOMPONENT = "alarme-panel"
-PANEL_TITLE = "Alarme"
-PANEL_ICON = "mdi:shield-lock"
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Alarme Personnalisée from a config entry."""
@@ -28,20 +24,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Register the frontend panel
-
-    # Serve the www directory
-    static_path = hass.config.path(f"custom_components/{DOMAIN}/www")
-    url_path = f"/{DOMAIN}_files"
-    hass.http.register_static_path(url_path, static_path)
-
-    # Register the panel
-    await hass.components.frontend.async_register_panel(
+    # The 'webcomponent' key in manifest.json handles the JS loading.
+    await frontend.async_register_panel(
         hass,
-        PANEL_WEBCOMPONENT,
-        PANEL_URL,
-        PANEL_TITLE,
-        PANEL_ICON,
-        f"{url_path}/alarme_panel.js",
+        panel_url="alarme-personnalisee",
+        webcomponent_name="alarme-panel",
+        sidebar_title="Alarme",
+        sidebar_icon="mdi:shield-lock",
         require_admin=True,
     )
 
@@ -58,6 +47,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if unload_ok:
         # Remove the frontend panel
-        frontend.async_remove_panel(hass, PANEL_URL)
+        frontend.async_remove_panel(hass, "alarme-personnalisee")
 
     return unload_ok
