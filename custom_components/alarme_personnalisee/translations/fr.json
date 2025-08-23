@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuration de l'Alarme Personnalisée",
+        "description": "Veuillez sélectionner les capteurs pour chaque mode d'alarme.",
+        "data": {
+          "away_sensors": "Capteurs pour le mode Absent",
+          "home_sensors": "Capteurs pour le mode Présent",
+          "vacation_sensors": "Capteurs pour le mode Vacances"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Cette alarme est déjà configurée."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options de l'Alarme Personnalisée",
+        "description": "Mettez à jour les capteurs pour chaque mode d'alarme.",
+        "data": {
+          "away_sensors": "Capteurs pour le mode Absent",
+          "home_sensors": "Capteurs pour le mode Présent",
+          "vacation_sensors": "Capteurs pour le mode Vacances"
+        }
+      }
+    }
+  }
+}
