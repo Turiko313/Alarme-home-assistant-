@@ -54,7 +54,6 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     def _update_options(self):
         """Update options from the config entry."""
         options = self._entry.options
-        data = self._entry.data
         self._code = options.get("code", "")
         self._require_arm_code = options.get("require_arm_code", False)
         self._require_disarm_code = options.get("require_disarm_code", True)
@@ -65,9 +64,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
         self._trigger_actions = options.get("trigger_actions", [])
 
-        self._away_sensors = options.get("away_sensors", data.get("away_sensors", []))
-        self._home_sensors = options.get("home_sensors", data.get("home_sensors", []))
-        self._vacation_sensors = options.get("vacation_sensors", data.get("vacation_sensors", []))
+        self._away_sensors = options.get("away_sensors", [])
+        self._home_sensors = options.get("home_sensors", [])
+        self._vacation_sensors = options.get("vacation_sensors", [])
 
         self._all_sensors = list(set(self._away_sensors + self._home_sensors + self._vacation_sensors))
 

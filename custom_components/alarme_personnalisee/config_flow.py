@@ -32,27 +32,13 @@ class AlarmePersonnaliseeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        # Allow only one instance of the integration.
         if self._async_current_entries():
             return self.async_abort(reason="already_configured")
 
-        if user_input is not None:
-            return self.async_create_entry(title="Alarme Personnalisée", data=user_input)
-
-        data_schema = vol.Schema(
-            {
-                vol.Optional("away_sensors"): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
-                ),
-                vol.Optional("home_sensors"): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
-                ),
-                vol.Optional("vacation_sensors"): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
-                ),
-            }
-        )
-
-        return self.async_show_form(step_id="user", data_schema=data_schema)
+        # No user input needed for initial setup, create the entry immediately.
+        # All configuration will be done in the options flow.
+        return self.async_create_entry(title="Alarme Personnalisée", data={})
 
 
 class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
@@ -70,10 +56,8 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
             # user_input contains the new options. We update the config entry.
             return self.async_create_entry(title="", data=user_input)
 
-        # The form is pre-filled with values from the config entry options or data.
-        # .options is for values set in the options flow, .data is for initial values.
+        # The form is pre-filled with values from the config entry options.
         options = self.config_entry.options
-        data = self.config_entry.data
 
         schema = vol.Schema(
             {
@@ -117,19 +101,19 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                 ),
                 vol.Optional(
                     "away_sensors",
-                    description={"suggested_value": options.get("away_sensors", data.get("away_sensors", []))},
+                    description={"suggested_value": options.get("away_sensors", [])},
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
                 vol.Optional(
                     "home_sensors",
-                    description={"suggested_value": options.get("home_sensors", data.get("home_sensors", []))},
+                    description={"suggested_value": options.get("home_sensors", [])},
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
                 vol.Optional(
                     "vacation_sensors",
-                    description={"suggested_value": options.get("vacation_sensors", data.get("vacation_sensors", []))},
+                    description={"suggested_value": options.get("vacation_sensors", [])},
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
