@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Custom Alarm Setup",
+        "description": "Please select the sensors for each alarm mode.",
+        "data": {
+          "away_sensors": "Sensors for Away Mode",
+          "home_sensors": "Sensors for Home Mode",
+          "vacation_sensors": "Sensors for Vacation Mode"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This alarm is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Custom Alarm Options",
+        "description": "Update the sensors for each alarm mode.",
+        "data": {
+          "away_sensors": "Sensors for Away Mode",
+          "home_sensors": "Sensors for Home Mode",
+          "vacation_sensors": "Sensors for Vacation Mode"
+        }
+      }
+    }
+  }
+}
