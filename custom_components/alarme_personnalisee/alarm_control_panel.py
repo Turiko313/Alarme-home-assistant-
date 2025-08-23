@@ -97,6 +97,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         return CodeFormat.NUMBER if self._code else None
 
     @property
+    def code_arm_required(self) -> bool:
+        """Whether the code is required for arming."""
+        return False
+
+    @property
     def supported_features(self) -> AlarmControlPanelEntityFeature:
         """Return the list of supported features."""
         return (
