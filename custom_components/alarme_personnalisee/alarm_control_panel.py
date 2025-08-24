@@ -16,7 +16,12 @@ from homeassistant.helpers.device_info import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 
-from .const import DOMAIN
+from .const import (
+    CONF_LIGHT_ACTIONS,
+    CONF_SIREN_ACTIONS,
+    CONF_SWITCH_ACTIONS,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,7 +75,10 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._delay_time = options.get("delay_time", 30)
         self._trigger_time = options.get("trigger_time", 180)
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
-        self._trigger_actions = options.get("trigger_actions", [])
+
+        self._light_actions = options.get(CONF_LIGHT_ACTIONS, [])
+        self._siren_actions = options.get(CONF_SIREN_ACTIONS, [])
+        self._switch_actions = options.get(CONF_SWITCH_ACTIONS, [])
 
         self._away_sensors = options.get("away_sensors", [])
         self._home_sensors = options.get("home_sensors", [])
@@ -192,17 +200,74 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def _async_execute_actions(self, service: str):
         """Execute the trigger actions."""
-        if not self._trigger_actions:
-            return
-
         _LOGGER.info("Executing %s on trigger actions", service)
 
-        await self.hass.services.async_call(
-            "homeassistant",
-            service,
-            {"entity_id": self._trigger_actions},
-            blocking=True,
-        )
+        if service == "turn_on":
+            # Handle lights
+            for light_action in self._light_actions:
+                entity_id = light_action.get("entity_id")
+                if not entity_id:
+                    continue
+
+                service_data = {"entity_id": entity_id}
+                params = {
+                    key: value
+                    for key, value in light_action.items()
+                    if key != "entity_id"
+                }
+
+                if "color" in params:
+                    params["rgb_color"] = params.pop("color")
+
+                self.hass.async_create_task(
+                    self.hass.services.async_call(
+                        "light", "turn_on", {**service_data, **params}
+                    )
+                )
+
+            # Handle sirens
+            for siren_action in self._siren_actions:
+                entity_id = siren_action.get("entity_id")
+                if not entity_id:
+                    continue
+
+                service_data = {"entity_id": entity_id}
+                params = {
+                    key: value
+                    for key, value in siren_action.items()
+                    if key != "entity_id"
+                }
+
+                if "volume" in params:
+                    params["volume_level"] = params.pop("volume")
+
+                self.hass.async_create_task(
+                    self.hass.services.async_call(
+                        "siren", "turn_on", {**service_data, **params}
+                    )
+                )
+
+            # Handle switches
+            if self._switch_actions:
+                self.hass.async_create_task(
+                    self.hass.services.async_call(
+                        "switch", "turn_on", {"entity_id": self._switch_actions}
+                    )
+                )
+
+        elif service == "turn_off":
+            all_entities = []
+            all_entities.extend(self._switch_actions)
+            all_entities.extend([a["entity_id"] for a in self._light_actions if "entity_id" in a])
+            all_entities.extend([a["entity_id"] for a in self._siren_actions if "entity_id" in a])
+
+            if all_entities:
+                await self.hass.services.async_call(
+                    "homeassistant",
+                    "turn_off",
+                    {"entity_id": list(set(all_entities))},
+                    blocking=True,
+                )
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
