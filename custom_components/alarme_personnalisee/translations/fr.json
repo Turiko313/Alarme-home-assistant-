@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "Options de l'Alarme Personnalisée",
-        "description": "Configurez ici les délais, le code PIN et les capteurs de l'alarme.",
+        "description": "Configurez ici les délais, le code PIN et les capteurs de l'alarme.\n\n**Les actions sont maintenant gérées par des automatisations.**\n\nCette intégration déclenche des événements que vous pouvez utiliser pour lancer les actions de votre choix. Créez une nouvelle automatisation et utilisez un déclencheur de type 'Événement'. Voici les événements disponibles :\n\n- `alarme_personnalisee_triggered`: Déclenché quand l'alarme retentit. L'événement contient la donnée `mode` (ex: `armed_away`, `armed_home`) que vous pouvez utiliser dans vos conditions.\n- `alarme_personnalisee_stopped`: Déclenché quand la durée du déclenchement est terminée.\n- `alarme_personnalisee_disarmed`: Déclenché quand une alarme en cours est désarmée.\n- `alarme_personnalisee_emergency_disarmed`: Déclenché lors d'un désarmement avec le code d'urgence.\n\n**Exemple de Déclencheur :**\n```yaml\nplatform: event\nevent_type: alarme_personnalisee_triggered\nevent_data:\n  mode: armed_away\n```",
         "data": {
           "code": "Code PIN",
           "require_arm_code": "Exiger le code PIN pour l'armement",
@@ -29,14 +29,6 @@
           "delay_time": "Délai d'entrée (secondes)",
           "trigger_time": "Durée de déclenchement (secondes)",
           "rearm_after_trigger": "Réarmer automatiquement après déclenchement",
-          "light_actions": "Actions pour les lumières",
-          "siren_actions": "Actions pour les sirènes",
-          "switch_actions": "Actions pour les interrupteurs (allumer/éteindre)",
-          "entity_id": "Entité",
-          "color": "Couleur",
-          "brightness": "Luminosité (0-255)",
-          "flash": "Effet de flash",
-          "volume": "Volume (0.0-1.0)",
           "away_sensors": "Capteurs pour le mode Absent",
           "home_sensors": "Capteurs pour le mode Présent",
           "vacation_sensors": "Capteurs pour le mode Vacances"

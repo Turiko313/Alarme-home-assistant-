@@ -19,7 +19,7 @@
     "step": {
       "init": {
         "title": "Custom Alarm Options",
-        "description": "Here you can configure the alarm delays, PIN code, and sensor mappings.",
+        "description": "Here you can configure the alarm delays, PIN code, and sensor mappings.\n\n**Actions are now handled using automations.**\n\nThis integration fires events that you can use to trigger any action you want. Create a new automation and use an 'Event' trigger. Here are the events:\n\n- `alarme_personnalisee_triggered`: Fired when the alarm starts ringing. The event data contains `mode` (e.g., `armed_away`, `armed_home`) which you can use in conditions.\n- `alarme_personnalisee_stopped`: Fired when the alarm duration ends.\n- `alarme_personnalisee_disarmed`: Fired when a ringing alarm is disarmed.\n- `alarme_personnalisee_emergency_disarmed`: Fired when disarmed with the emergency code.\n\n**Example Trigger:**\n```yaml\nplatform: event\nevent_type: alarme_personnalisee_triggered\nevent_data:\n  mode: armed_away\n```",
         "data": {
           "code": "PIN Code",
           "require_arm_code": "Require PIN to arm",
@@ -29,14 +29,6 @@
           "delay_time": "Entry Delay (seconds)",
           "trigger_time": "Trigger Duration (seconds)",
           "rearm_after_trigger": "Rearm automatically after being triggered",
-          "light_actions": "Actions for Lights",
-          "siren_actions": "Actions for Sirens",
-          "switch_actions": "Actions for Switches (turn on/off)",
-          "entity_id": "Entity",
-          "color": "Color",
-          "brightness": "Brightness (0-255)",
-          "flash": "Flash Effect",
-          "volume": "Volume (0.0-1.0)",
           "away_sensors": "Sensors for Away Mode",
           "home_sensors": "Sensors for Home Mode",
           "vacation_sensors": "Sensors for Vacation Mode"
