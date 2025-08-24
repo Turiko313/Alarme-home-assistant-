@@ -183,14 +183,12 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             return
 
         _LOGGER.info("Executing %s on trigger actions", service)
-        # For turning off, we want to wait for the service to complete.
-        is_blocking = service == "turn_off"
 
         await self.hass.services.async_call(
             "homeassistant",
             service,
             {"entity_id": self._trigger_actions},
-            blocking=is_blocking,
+            blocking=True,
         )
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
