@@ -71,7 +71,7 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                 ): bool,
                 vol.Optional(
                     "require_disarm_code",
-                    description={"suggested_value": options.get("require_disarm_code", True)},
+                    description={"suggested_value": options.get("require_disarm_code", False)},
                 ): bool,
                 vol.Optional(
                     "emergency_code",
@@ -93,12 +93,6 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                     "rearm_after_trigger",
                     description={"suggested_value": options.get("rearm_after_trigger", False)},
                 ): bool,
-                vol.Optional(
-                    "trigger_actions",
-                    description={"suggested_value": options.get("trigger_actions", [])},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=["light", "switch", "siren"], multiple=True)
-                ),
                 vol.Optional(
                     "away_sensors",
                     description={"suggested_value": options.get("away_sensors", [])},
