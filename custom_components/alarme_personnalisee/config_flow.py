@@ -94,12 +94,6 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                     description={"suggested_value": options.get("rearm_after_trigger", False)},
                 ): bool,
                 vol.Optional(
-                    "trigger_actions",
-                    description={"suggested_value": options.get("trigger_actions", [])},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=["light", "switch", "siren"], multiple=True)
-                ),
-                vol.Optional(
                     "away_sensors",
                     description={"suggested_value": options.get("away_sensors", [])},
                 ): selector.EntitySelector(

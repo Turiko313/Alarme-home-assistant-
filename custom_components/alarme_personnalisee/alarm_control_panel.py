@@ -70,7 +70,6 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._delay_time = options.get("delay_time", 30)
         self._trigger_time = options.get("trigger_time", 180)
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
-        self._trigger_actions = options.get("trigger_actions", [])
 
         self._away_sensors = options.get("away_sensors", [])
         self._home_sensors = options.get("home_sensors", [])
@@ -174,14 +173,14 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         """Trigger the alarm."""
         _LOGGER.warning("Alarm triggered!")
         self._state = AlarmControlPanelState.TRIGGERED
-        self.hass.async_create_task(self._async_execute_actions("turn_on"))
+        # Actions removed as requested
         self.async_write_ha_state()
         self._timer_handle = async_call_later(self.hass, self._trigger_time, self._post_trigger_action)
 
     @callback
     def _post_trigger_action(self, now: datetime):
         """Action after trigger duration."""
-        self.hass.async_create_task(self._async_execute_actions("turn_off"))
+        # Actions removed as requested
         if self._rearm_after_trigger and self._last_armed_state:
             _LOGGER.info("Rearming alarm to %s", self._last_armed_state)
             self._state = self._last_armed_state
@@ -189,20 +188,6 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             _LOGGER.info("Disarming alarm after trigger.")
             self._state = AlarmControlPanelState.DISARMED
         self.async_write_ha_state()
-
-    async def _async_execute_actions(self, service: str):
-        """Execute the trigger actions."""
-        if not self._trigger_actions:
-            return
-
-        _LOGGER.info("Executing %s on trigger actions", service)
-
-        await self.hass.services.async_call(
-            "homeassistant",
-            service,
-            {"entity_id": self._trigger_actions},
-            blocking=True,
-        )
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
@@ -223,7 +208,8 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
         # If we reach here, disarming is successful
         if self._state == AlarmControlPanelState.TRIGGERED:
-            await self._async_execute_actions("turn_off")
+            # Actions removed as requested
+            pass
 
         _LOGGER.info("Alarm disarmed")
         self._state = AlarmControlPanelState.DISARMED
