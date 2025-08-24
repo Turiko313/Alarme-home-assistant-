@@ -105,6 +105,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             | AlarmControlPanelEntityFeature.ARM_VACATION
         )
 
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return {"supported_features_list": ["ARM_HOME", "ARM_AWAY", "ARM_VACATION"]}
+
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
@@ -242,12 +247,21 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home command."""
-        await self._arm(AlarmControlPanelState.ARMED_HOME, code)
+        if self._state == AlarmControlPanelState.ARMED_HOME:
+            await self.async_alarm_disarm(code)
+        else:
+            await self._arm(AlarmControlPanelState.ARMED_HOME, code)
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
-        await self._arm(AlarmControlPanelState.ARMED_AWAY, code)
+        if self._state == AlarmControlPanelState.ARMED_AWAY:
+            await self.async_alarm_disarm(code)
+        else:
+            await self._arm(AlarmControlPanelState.ARMED_AWAY, code)
 
     async def async_alarm_arm_vacation(self, code: str | None = None) -> None:
         """Send arm vacation command."""
-        await self._arm(AlarmControlPanelState.ARMED_VACATION, code)
+        if self._state == AlarmControlPanelState.ARMED_VACATION:
+            await self.async_alarm_disarm(code)
+        else:
+            await self._arm(AlarmControlPanelState.ARMED_VACATION, code)
