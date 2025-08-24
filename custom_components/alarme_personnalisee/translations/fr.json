@@ -29,7 +29,6 @@
           "delay_time": "Délai d'entrée (secondes)",
           "trigger_time": "Durée de déclenchement (secondes)",
           "rearm_after_trigger": "Réarmer automatiquement après déclenchement",
-          "trigger_actions": "Actions au déclenchement (lumières, sirènes, etc.)",
           "away_sensors": "Capteurs pour le mode Absent",
           "home_sensors": "Capteurs pour le mode Présent",
           "vacation_sensors": "Capteurs pour le mode Vacances"
