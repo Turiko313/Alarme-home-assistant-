@@ -72,6 +72,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def _options_update_listener(self, hass: HomeAssistant, entry: ConfigEntry):
         """Handle options update."""
+        self._cancel_timer()
         self._update_options()
         if self._unsub_listener:
             self._unsub_listener()
@@ -182,11 +183,14 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             return
 
         _LOGGER.info("Executing %s on trigger actions", service)
+        # For turning off, we want to wait for the service to complete.
+        is_blocking = service == "turn_off"
+
         await self.hass.services.async_call(
             "homeassistant",
             service,
             {"entity_id": self._trigger_actions},
-            blocking=False,
+            blocking=is_blocking,
         )
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
@@ -208,7 +212,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
         # If we reach here, disarming is successful
         if self._state == AlarmControlPanelState.TRIGGERED:
-            self.hass.async_create_task(self._async_execute_actions("turn_off"))
+            await self._async_execute_actions("turn_off")
 
         _LOGGER.info("Alarm disarmed")
         self._state = AlarmControlPanelState.DISARMED
