@@ -12,6 +12,7 @@ from homeassistant.components.alarm_control_panel import (
 from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers.device_info import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 
@@ -40,6 +41,13 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._entry = entry
         self._attr_unique_id = entry.entry_id
         self._attr_name = "Alarme"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=self._attr_name,
+            manufacturer="Alarme Personnalisée",
+            model="Alarme",
+            sw_version=entry.version,
+        )
         self._state = AlarmControlPanelState.DISARMED
         self._last_armed_state = None
         self._timer_handle = None
