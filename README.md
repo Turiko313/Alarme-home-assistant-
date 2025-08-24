@@ -9,7 +9,7 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
 -   **Modes d'alarme multiples :** Prend en charge les modes `À domicile` (armed_home), `Extérieur` (armed_away), et `Vacances` (armed_vacation).
 -   **Comportement de bascule :** Activez un mode en cliquant sur son icône. Cliquez à nouveau pour le désactiver. Fini le bouton "Désactiver" !
 -   **Configuration facile :** Entièrement configurable via l'interface utilisateur de Home Assistant.
--   **Déclencheurs et actions personnalisables :** Définissez les capteurs qui déclencheront l'alarme et les actions à exécuter (par exemple, allumer des lumières, envoyer des notifications).
+-   **Déclencheurs personnalisables :** Définissez les capteurs qui déclencheront l'alarme.
 -   **Compatibilité HACS :** Installation et mises à jour faciles via le [Home Assistant Community Store (HACS)](https://hacs.xyz/).
 
 ## Installation
@@ -37,7 +37,6 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
     *   **Code d'armement/désarmement :** Définissez un code PIN (optionnel).
     *   **Temporisations :** Configurez les délais d'armement, d'entrée et de déclenchement.
     *   **Capteurs :** Sélectionnez les capteurs pour chaque mode d'alarme.
-    *   **Actions :** Choisissez les entités à activer/désactiver lorsque l'alarme se déclenche.
 
 ## Utilisation dans Lovelace
 
