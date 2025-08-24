@@ -17,10 +17,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 
 from .const import (
-    CONF_LIGHT_ACTIONS,
-    CONF_SIREN_ACTIONS,
-    CONF_SWITCH_ACTIONS,
     DOMAIN,
+    EVENT_DISARMED,
+    EVENT_EMERGENCY_DISARM,
+    EVENT_STOPPED,
+    EVENT_TRIGGERED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,10 +76,6 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._delay_time = options.get("delay_time", 30)
         self._trigger_time = options.get("trigger_time", 180)
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
-
-        self._light_actions = options.get(CONF_LIGHT_ACTIONS, [])
-        self._siren_actions = options.get(CONF_SIREN_ACTIONS, [])
-        self._switch_actions = options.get(CONF_SWITCH_ACTIONS, [])
 
         self._away_sensors = options.get("away_sensors", [])
         self._home_sensors = options.get("home_sensors", [])
@@ -182,14 +179,18 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         """Trigger the alarm."""
         _LOGGER.warning("Alarm triggered!")
         self._state = AlarmControlPanelState.TRIGGERED
-        self.hass.async_create_task(self._async_execute_actions("turn_on"))
+        self.hass.bus.async_fire(
+            EVENT_TRIGGERED, {"mode": self._last_armed_state, "entity_id": self.entity_id}
+        )
         self.async_write_ha_state()
-        self._timer_handle = async_call_later(self.hass, self._trigger_time, self._post_trigger_action)
+        self._timer_handle = async_call_later(
+            self.hass, self._trigger_time, self._post_trigger_action
+        )
 
     @callback
     def _post_trigger_action(self, now: datetime):
         """Action after trigger duration."""
-        self.hass.async_create_task(self._async_execute_actions("turn_off"))
+        self.hass.bus.async_fire(EVENT_STOPPED, {"entity_id": self.entity_id})
         if self._rearm_after_trigger and self._last_armed_state:
             _LOGGER.info("Rearming alarm to %s", self._last_armed_state)
             self._state = self._last_armed_state
@@ -198,83 +199,14 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             self._state = AlarmControlPanelState.DISARMED
         self.async_write_ha_state()
 
-    async def _async_execute_actions(self, service: str):
-        """Execute the trigger actions."""
-        _LOGGER.info("Executing %s on trigger actions", service)
-
-        if service == "turn_on":
-            # Handle lights
-            for light_action in self._light_actions:
-                entity_id = light_action.get("entity_id")
-                if not entity_id:
-                    continue
-
-                service_data = {"entity_id": entity_id}
-                params = {
-                    key: value
-                    for key, value in light_action.items()
-                    if key != "entity_id"
-                }
-
-                if "color" in params:
-                    params["rgb_color"] = params.pop("color")
-
-                self.hass.async_create_task(
-                    self.hass.services.async_call(
-                        "light", "turn_on", {**service_data, **params}
-                    )
-                )
-
-            # Handle sirens
-            for siren_action in self._siren_actions:
-                entity_id = siren_action.get("entity_id")
-                if not entity_id:
-                    continue
-
-                service_data = {"entity_id": entity_id}
-                params = {
-                    key: value
-                    for key, value in siren_action.items()
-                    if key != "entity_id"
-                }
-
-                if "volume" in params:
-                    params["volume_level"] = params.pop("volume")
-
-                self.hass.async_create_task(
-                    self.hass.services.async_call(
-                        "siren", "turn_on", {**service_data, **params}
-                    )
-                )
-
-            # Handle switches
-            if self._switch_actions:
-                self.hass.async_create_task(
-                    self.hass.services.async_call(
-                        "switch", "turn_on", {"entity_id": self._switch_actions}
-                    )
-                )
-
-        elif service == "turn_off":
-            all_entities = []
-            all_entities.extend(self._switch_actions)
-            all_entities.extend([a["entity_id"] for a in self._light_actions if "entity_id" in a])
-            all_entities.extend([a["entity_id"] for a in self._siren_actions if "entity_id" in a])
-
-            if all_entities:
-                await self.hass.services.async_call(
-                    "homeassistant",
-                    "turn_off",
-                    {"entity_id": list(set(all_entities))},
-                    blocking=True,
-                )
-
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
         # Check for emergency code first
         if self._emergency_code and code == self._emergency_code:
             _LOGGER.warning("Emergency code used to disarm alarm!")
-            self.hass.bus.async_fire(f"{DOMAIN}.urgence", {"entity_id": self.entity_id})
+            self.hass.bus.async_fire(
+                EVENT_EMERGENCY_DISARM, {"entity_id": self.entity_id}
+            )
             # Disarm without further checks
 
         # Check for regular code if required
@@ -288,7 +220,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
         # If we reach here, disarming is successful
         if self._state == AlarmControlPanelState.TRIGGERED:
-            await self._async_execute_actions("turn_off")
+            self.hass.bus.async_fire(EVENT_DISARMED, {"entity_id": self.entity_id})
 
         _LOGGER.info("Alarm disarmed")
         self._state = AlarmControlPanelState.DISARMED
