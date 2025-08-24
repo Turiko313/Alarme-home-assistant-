@@ -1,0 +1,12 @@
+{
+  "domain": "alarme_personnalisee",
+  "name": "Alarme Personnalisée",
+  "version": "1.0.0",
+  "documentation": "https://github.com/user/repo",
+  "issue_tracker": "https://github.com/user/repo/issues",
+  "codeowners": [],
+  "config_flow": true,
+  "iot_class": "calculated",
+  "requirements": [],
+  "dependencies": []
+}

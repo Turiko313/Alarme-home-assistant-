@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Custom Alarm Setup",
+        "description": "Select the sensors to monitor in each mode.",
+        "data": {
+          "away_sensors": "Sensors for Away Mode",
+          "home_sensors": "Sensors for Home Mode",
+          "vacation_sensors": "Sensors for Vacation Mode"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This alarm panel is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Custom Alarm Options",
+        "description": "Here you can configure the alarm delays, PIN code, and sensor mappings.",
+        "data": {
+          "code": "PIN Code",
+          "require_arm_code": "Require PIN to arm",
+          "require_disarm_code": "Require PIN to disarm",
+          "emergency_code": "Emergency Code (optional)",
+          "arming_time": "Arming Time (seconds)",
+          "delay_time": "Entry Delay (seconds)",
+          "trigger_time": "Trigger Duration (seconds)",
+          "rearm_after_trigger": "Rearm automatically after being triggered",
+          "trigger_actions": "Actions on Trigger (lights, sirens, etc.)",
+          "away_sensors": "Sensors for Away Mode",
+          "home_sensors": "Sensors for Home Mode",
+          "vacation_sensors": "Sensors for Vacation Mode"
+        }
+      }
+    }
+  }
+}
