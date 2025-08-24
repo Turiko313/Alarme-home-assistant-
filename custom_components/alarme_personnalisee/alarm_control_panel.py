@@ -120,8 +120,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._cancel_timer()
 
     def _cancel_timer(self):
+        """Cancel the timer."""
         if self._timer_handle:
-            self._timer_handle.cancel()
+            self._timer_handle()  # This is a callable, not an object with a cancel method.
             self._timer_handle = None
 
     @callback
