@@ -9,8 +9,23 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
+from homeassistant.helpers.selector import (
+    ColorRgbSelector,
+    EntitySelector,
+    EntitySelectorConfig,
+    ListSelector,
+    ObjectSelector,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
-from .const import DOMAIN
+from .const import (
+    CONF_LIGHT_ACTIONS,
+    CONF_SIREN_ACTIONS,
+    CONF_SWITCH_ACTIONS,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,60 +77,94 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
         schema = vol.Schema(
             {
                 vol.Optional(
-                    "code",
-                    description={"suggested_value": options.get("code")},
+                    "code", default=options.get("code", "")
                 ): str,
                 vol.Optional(
                     "require_arm_code",
-                    description={"suggested_value": options.get("require_arm_code", False)},
+                    default=options.get("require_arm_code", False),
                 ): bool,
                 vol.Optional(
                     "require_disarm_code",
-                    description={"suggested_value": options.get("require_disarm_code", True)},
+                    default=options.get("require_disarm_code", True),
                 ): bool,
                 vol.Optional(
-                    "emergency_code",
-                    description={"suggested_value": options.get("emergency_code")},
+                    "emergency_code", default=options.get("emergency_code", "")
                 ): str,
                 vol.Optional(
-                    "arming_time",
-                    description={"suggested_value": options.get("arming_time", 30)},
+                    "arming_time", default=options.get("arming_time", 30)
                 ): int,
                 vol.Optional(
-                    "delay_time",
-                    description={"suggested_value": options.get("delay_time", 30)},
+                    "delay_time", default=options.get("delay_time", 30)
                 ): int,
                 vol.Optional(
-                    "trigger_time",
-                    description={"suggested_value": options.get("trigger_time", 180)},
+                    "trigger_time", default=options.get("trigger_time", 180)
                 ): int,
                 vol.Optional(
                     "rearm_after_trigger",
-                    description={"suggested_value": options.get("rearm_after_trigger", False)},
+                    default=options.get("rearm_after_trigger", False),
                 ): bool,
                 vol.Optional(
-                    "trigger_actions",
-                    description={"suggested_value": options.get("trigger_actions", [])},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain=["light", "switch", "siren"], multiple=True)
+                    CONF_LIGHT_ACTIONS,
+                    default=options.get(CONF_LIGHT_ACTIONS, []),
+                ): ListSelector(
+                    ObjectSelector(
+                        vol.Schema(
+                            {
+                                vol.Required("entity_id"): EntitySelector(
+                                    EntitySelectorConfig(domain="light")
+                                ),
+                                vol.Optional("brightness"): vol.All(
+                                    vol.Coerce(int), vol.Range(min=0, max=255)
+                                ),
+                                vol.Optional("color"): ColorRgbSelector(),
+                                vol.Optional("flash"): SelectSelector(
+                                    SelectSelectorConfig(
+                                        options=["short", "long"],
+                                        mode=SelectSelectorMode.DROPDOWN,
+                                    )
+                                ),
+                            }
+                        )
+                    )
                 ),
                 vol.Optional(
+                    CONF_SIREN_ACTIONS,
+                    default=options.get(CONF_SIREN_ACTIONS, []),
+                ): ListSelector(
+                    ObjectSelector(
+                        vol.Schema(
+                            {
+                                vol.Required("entity_id"): EntitySelector(
+                                    EntitySelectorConfig(domain="siren")
+                                ),
+                                vol.Optional("volume"): vol.All(
+                                    vol.Coerce(float), vol.Range(min=0.0, max=1.0)
+                                ),
+                            }
+                        )
+                    )
+                ),
+                vol.Optional(
+                    CONF_SWITCH_ACTIONS,
+                    default=options.get(CONF_SWITCH_ACTIONS, []),
+                ): EntitySelector(EntitySelectorConfig(domain="switch", multiple=True)),
+                vol.Optional(
                     "away_sensors",
-                    description={"suggested_value": options.get("away_sensors", [])},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
+                    default=options.get("away_sensors", []),
+                ): EntitySelector(
+                    EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
                 vol.Optional(
                     "home_sensors",
-                    description={"suggested_value": options.get("home_sensors", [])},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
+                    default=options.get("home_sensors", []),
+                ): EntitySelector(
+                    EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
                 vol.Optional(
                     "vacation_sensors",
-                    description={"suggested_value": options.get("vacation_sensors", [])},
-                ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
+                    default=options.get("vacation_sensors", []),
+                ): EntitySelector(
+                    EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
             }
         )
