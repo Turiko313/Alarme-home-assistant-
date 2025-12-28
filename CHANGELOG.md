@@ -5,6 +5,20 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.3.1] - 2025-01-XX
+
+### Corrigé
+- **?? BUG CRITIQUE** : Les capteurs sont maintenant surveillés **pendant le délai d'armement**
+  - Avant : Si un capteur s'ouvrait pendant l'armement, l'alarme s'armait quand même
+  - Maintenant : L'armement est **annulé automatiquement** si un capteur se déclenche
+  - Un événement `alarme_personnalisee.arming_cancelled` est émis avec le capteur responsable
+
+### Ajouté
+- Nouvel événement `alarme_personnalisee.arming_cancelled` émis quand l'armement est annulé
+
+### Sécurité
+- Amélioration significative de la sécurité : impossible d'armer avec une porte/fenêtre ouverte
+
 ## [1.3.0] - 2025-01-XX
 
 ### Ajouté

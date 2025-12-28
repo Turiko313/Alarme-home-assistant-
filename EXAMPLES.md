@@ -24,6 +24,28 @@ automation:
             channel: alarm
 ```
 
+## 1.5 Notification si l'armement est annulé (NOUVEAU)
+
+```yaml
+automation:
+  - id: notification_armement_annule
+    alias: "Notification - Armement annulé"
+    description: "Alerte si un capteur empêche l'armement"
+    trigger:
+      - platform: event
+        event_type: alarme_personnalisee.arming_cancelled
+    action:
+      - service: notify.mobile_app_votre_telephone
+        data:
+          title: "?? Armement annulé"
+          message: >
+            L'armement a été annulé car le capteur {{ trigger.event.data.cancelled_by }} est ouvert.
+            Fermez toutes les portes et fenêtres avant d'armer.
+          data:
+            priority: high
+            channel: alarm
+```
+
 ## 2. Notification lors d'un désarmement d'urgence
 
 ```yaml
@@ -222,4 +244,3 @@ automation:
               target:
                 entity_id: light.toutes_les_lumieres
             - delay: "00:00:01"
-```

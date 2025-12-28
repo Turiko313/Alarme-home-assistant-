@@ -175,22 +175,57 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             _LOGGER.warning("Sensor state change event without entity_id")
             return
 
+        # Surveiller les capteurs pendant l'armement ET quand armé
         if self._state not in [
+            AlarmControlPanelState.ARMING,
             AlarmControlPanelState.ARMED_AWAY,
             AlarmControlPanelState.ARMED_HOME,
             AlarmControlPanelState.ARMED_VACATION,
         ]:
             return
 
-        is_relevant_sensor = (
-            (self._state == AlarmControlPanelState.ARMED_AWAY and entity_id in self._away_sensors)
-            or (self._state == AlarmControlPanelState.ARMED_HOME and entity_id in self._home_sensors)
-            or (self._state == AlarmControlPanelState.ARMED_VACATION and entity_id in self._vacation_sensors)
-        )
+        # Déterminer quels capteurs surveiller selon le mode cible
+        if self._state == AlarmControlPanelState.ARMING:
+            # En cours d'armement, vérifier selon le mode cible
+            if self._last_armed_state == AlarmControlPanelState.ARMED_AWAY:
+                is_relevant_sensor = entity_id in self._away_sensors
+            elif self._last_armed_state == AlarmControlPanelState.ARMED_HOME:
+                is_relevant_sensor = entity_id in self._home_sensors
+            elif self._last_armed_state == AlarmControlPanelState.ARMED_VACATION:
+                is_relevant_sensor = entity_id in self._vacation_sensors
+            else:
+                return
+        else:
+            # Déjà armé, vérifier selon l'état actuel
+            is_relevant_sensor = (
+                (self._state == AlarmControlPanelState.ARMED_AWAY and entity_id in self._away_sensors)
+                or (self._state == AlarmControlPanelState.ARMED_HOME and entity_id in self._home_sensors)
+                or (self._state == AlarmControlPanelState.ARMED_VACATION and entity_id in self._vacation_sensors)
+            )
 
         if not is_relevant_sensor:
             return
 
+        # Si on est en cours d'armement et qu'un capteur se déclenche, annuler l'armement
+        if self._state == AlarmControlPanelState.ARMING:
+            _LOGGER.warning("Arming cancelled: sensor %s triggered during arming delay", entity_id)
+            self._cancel_timer()
+            self._state = AlarmControlPanelState.DISARMED
+            self._last_armed_state = None
+            self.async_write_ha_state()
+            
+            # Émettre un événement personnalisé
+            self.hass.bus.async_fire(
+                f"{DOMAIN}.arming_cancelled",
+                {
+                    "entity_id": self.entity_id,
+                    "cancelled_by": entity_id,
+                    "timestamp": dt_util.utcnow().isoformat(),
+                },
+            )
+            return
+
+        # Sinon, comportement normal (passage en PENDING)
         _LOGGER.info("Alarm pending due to sensor %s", entity_id)
         self._last_triggered_by = entity_id
         self._state = AlarmControlPanelState.PENDING
