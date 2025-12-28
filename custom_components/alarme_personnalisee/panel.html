@@ -2,69 +2,21 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alarme Personnalisée</title>
-    <script>
-        // Récupérer hass du parent
-        function getHass() {
-            let hassObj = null;
-            
-            // Méthode 1: Via le parent
-            if (window.parent && window.parent.hassConnection) {
-                hassObj = window.parent.hassConnection;
-            }
-            
-            // Méthode 2: Via customElements
-            if (!hassObj && window.parent && window.parent.customElements) {
-                const homeAssistant = window.parent.document.querySelector('home-assistant');
-                if (homeAssistant && homeAssistant.hass) {
-                    hassObj = homeAssistant.hass;
-                }
-            }
-            
-            // Méthode 3: Via querySelector
-            if (!hassObj && window.parent) {
-                const ha = window.parent.document.querySelector('home-assistant');
-                if (ha && ha.hass) {
-                    hassObj = ha.hass;
-                }
-                
-                const main = window.parent.document.querySelector('home-assistant-main');
-                if (!hassObj && main && main.hass) {
-                    hassObj = main.hass;
-                }
-            }
-            
-            return hassObj;
-        }
-        
-        // Attendre que le DOM soit chargé
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initPanel, 100);
-        });
-        
-        function initPanel() {
-            const hass = getHass();
-            if (hass) {
-                window.hass = hass;
-                refreshData();
-                setInterval(refreshData, 5000);
-            } else {
-                console.log('Waiting for HASS...');
-                setTimeout(initPanel, 500);
-            }
-        }
-    </script>
     <style>
-        body {
-            font-family: var(--paper-font-body1_-_font-family);
-            -webkit-font-smoothing: var(--paper-font-body1_-_-webkit-font-smoothing);
-            font-size: var(--paper-font-body1_-_font-size);
-            font-weight: var(--paper-font-body1_-_font-weight);
-            line-height: var(--paper-font-body1_-_line-height);
-            background-color: var(--primary-background-color);
-            color: var(--primary-text-color);
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #212121;
             padding: 20px;
+            line-height: 1.6;
         }
         
         .container {
@@ -77,41 +29,40 @@
             align-items: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 2px solid var(--divider-color);
+            border-bottom: 2px solid #e0e0e0;
         }
         
-        .header ha-icon {
-            --mdc-icon-size: 48px;
-            color: var(--primary-color);
+        .header-icon {
+            font-size: 48px;
             margin-right: 15px;
         }
         
         .header h1 {
-            margin: 0;
             font-size: 32px;
             font-weight: 300;
         }
         
         .section {
-            background: var(--card-background-color);
+            background: white;
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: var(--ha-card-box-shadow, 0 2px 4px rgba(0,0,0,0.1));
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .section h2 {
             margin-top: 0;
+            margin-bottom: 15px;
             font-size: 20px;
             font-weight: 500;
-            color: var(--primary-color);
+            color: #1976d2;
             display: flex;
             align-items: center;
         }
         
-        .section h2 ha-icon {
+        .section-icon {
+            font-size: 24px;
             margin-right: 10px;
-            --mdc-icon-size: 24px;
         }
         
         .status-grid {
@@ -123,14 +74,14 @@
         
         .status-item {
             padding: 15px;
-            background: var(--primary-background-color);
+            background: #f5f5f5;
             border-radius: 4px;
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid #1976d2;
         }
         
         .status-item .label {
             font-size: 12px;
-            color: var(--secondary-text-color);
+            color: #757575;
             text-transform: uppercase;
             margin-bottom: 5px;
         }
@@ -138,6 +89,7 @@
         .status-item .value {
             font-size: 18px;
             font-weight: 500;
+            word-break: break-word;
         }
         
         .state-badge {
@@ -148,39 +100,14 @@
             font-size: 14px;
         }
         
-        .state-disarmed { background: var(--success-color); color: white; }
-        .state-armed { background: var(--warning-color); color: white; }
-        .state-triggered { background: var(--error-color); color: white; }
-        .state-pending { background: var(--info-color); color: white; }
-        
-        .log-container {
-            max-height: 400px;
-            overflow-y: auto;
-            background: var(--primary-background-color);
-            border-radius: 4px;
-            padding: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-        }
-        
-        .log-entry {
-            padding: 8px;
-            margin-bottom: 5px;
-            border-left: 3px solid transparent;
-            border-radius: 2px;
-        }
-        
-        .log-entry.info { border-left-color: var(--info-color); }
-        .log-entry.warning { border-left-color: var(--warning-color); }
-        .log-entry.error { border-left-color: var(--error-color); }
-        
-        .log-entry .timestamp {
-            color: var(--secondary-text-color);
-            margin-right: 10px;
-        }
+        .state-disarmed { background: #4caf50; color: white; }
+        .state-armed { background: #ff9800; color: white; }
+        .state-triggered { background: #f44336; color: white; }
+        .state-pending { background: #2196f3; color: white; }
+        .state-arming { background: #ff9800; color: white; }
         
         .button {
-            background: var(--primary-color);
+            background: #1976d2;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -188,28 +115,31 @@
             cursor: pointer;
             font-size: 14px;
             margin-right: 10px;
+            margin-bottom: 10px;
         }
         
         .button:hover {
-            opacity: 0.9;
+            background: #1565c0;
         }
         
         .button.secondary {
-            background: var(--secondary-background-color);
-            color: var(--primary-text-color);
-            border: 1px solid var(--divider-color);
+            background: #757575;
+        }
+        
+        .button.secondary:hover {
+            background: #616161;
         }
         
         .sensors-list {
             list-style: none;
             padding: 0;
-            margin: 0;
+            margin: 10px 0;
         }
         
         .sensors-list li {
             padding: 10px;
             margin-bottom: 5px;
-            background: var(--primary-background-color);
+            background: #f5f5f5;
             border-radius: 4px;
             display: flex;
             justify-content: space-between;
@@ -223,27 +153,60 @@
             font-weight: 500;
         }
         
-        .sensor-on {
-            background: var(--error-color);
-            color: white;
+        .sensor-on { background: #f44336; color: white; }
+        .sensor-off { background: #4caf50; color: white; }
+        
+        .log-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #fafafa;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
         }
         
-        .sensor-off {
-            background: var(--success-color);
-            color: white;
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-left: 3px solid #2196f3;
+            border-radius: 2px;
+            background: white;
+        }
+        
+        .log-entry.warning { border-left-color: #ff9800; }
+        .log-entry.error { border-left-color: #f44336; }
+        
+        .log-entry .timestamp {
+            color: #757575;
+            margin-right: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #757575;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <ha-icon icon="mdi:shield-home"></ha-icon>
+            <div class="header-icon">???</div>
             <h1>Alarme Personnalisée</h1>
         </div>
         
         <div class="section">
             <h2>
-                <ha-icon icon="mdi:information"></ha-icon>
+                <span class="section-icon">??</span>
                 État de l'alarme
             </h2>
             <div class="status-grid" id="statusGrid">
@@ -268,39 +231,33 @@
         
         <div class="section">
             <h2>
-                <ha-icon icon="mdi:cog"></ha-icon>
+                <span class="section-icon">??</span>
                 Actions rapides
             </h2>
-            <div style="margin-top: 15px;">
-                <button class="button" onclick="openSettings()">
-                    Modifier les paramètres
-                </button>
-                <button class="button secondary" onclick="resetTriggerCount()">
-                    Réinitialiser le compteur
-                </button>
-                <button class="button secondary" onclick="refreshData()">
-                    Actualiser
-                </button>
+            <div>
+                <button class="button" onclick="openSettings()">Modifier les paramètres</button>
+                <button class="button secondary" onclick="resetTriggerCount()">Réinitialiser le compteur</button>
+                <button class="button secondary" onclick="refreshData()">Actualiser</button>
             </div>
         </div>
         
         <div class="section">
             <h2>
-                <ha-icon icon="mdi:sensors"></ha-icon>
+                <span class="section-icon">??</span>
                 Capteurs surveillés
             </h2>
             <div id="sensorsContainer">
-                <p>Chargement des capteurs...</p>
+                <p class="loading">Chargement des capteurs...</p>
             </div>
         </div>
         
         <div class="section">
             <h2>
-                <ha-icon icon="mdi:text-box-outline"></ha-icon>
-                Journal des événements
+                <span class="section-icon">??</span>
+                Journal des événements (24h)
             </h2>
             <div class="log-container" id="logContainer">
-                <div class="log-entry info">
+                <div class="log-entry">
                     <span class="timestamp">[Chargement...]</span>
                     Récupération des événements...
                 </div>
@@ -309,55 +266,64 @@
     </div>
     
     <script>
-        let alarmEntityId = 'alarm_control_panel.alarme';
-        
-        // Récupérer hass du parent
-        function getHass() {
-            let hassObj = null;
-            
-            // Méthode 1: Via le parent
-            if (window.parent && window.parent.hassConnection) {
-                hassObj = window.parent.hassConnection;
-            }
-            
-            // Méthode 2: Via customElements
-            if (!hassObj && window.parent && window.parent.customElements) {
-                const homeAssistant = window.parent.document.querySelector('home-assistant');
-                if (homeAssistant && homeAssistant.hass) {
-                    hassObj = homeAssistant.hass;
-                }
-            }
-            
-            // Méthode 3: Via querySelector
-            if (!hassObj && window.parent) {
-                const ha = window.parent.document.querySelector('home-assistant');
-                if (ha && ha.hass) {
-                    hassObj = ha.hass;
-                }
-                
-                const main = window.parent.document.querySelector('home-assistant-main');
-                if (!hassObj && main && main.hass) {
-                    hassObj = main.hass;
-                }
-            }
-            
-            return hassObj;
-        }
+        const ALARM_ENTITY_ID = 'alarm_control_panel.alarme';
+        let hassConnection = null;
+        let updateInterval = null;
         
         // Attendre que le DOM soit chargé
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initPanel, 100);
+            console.log('[Alarme Panel] DOM loaded, initializing...');
+            setTimeout(initPanel, 500);
         });
         
         function initPanel() {
-            const hass = getHass();
-            if (hass) {
-                window.hass = hass;
+            console.log('[Alarme Panel] Attempting to connect to Home Assistant...');
+            hassConnection = getHassConnection();
+            
+            if (hassConnection) {
+                console.log('[Alarme Panel] Connection established!');
                 refreshData();
-                setInterval(refreshData, 5000);
+                
+                // Actualiser toutes les 5 secondes
+                if (updateInterval) clearInterval(updateInterval);
+                updateInterval = setInterval(refreshData, 5000);
             } else {
-                console.log('Waiting for HASS...');
-                setTimeout(initPanel, 500);
+                console.log('[Alarme Panel] Waiting for Home Assistant connection...');
+                setTimeout(initPanel, 1000);
+            }
+        }
+        
+        function getHassConnection() {
+            try {
+                // Essayer différentes méthodes pour obtenir hass
+                if (window.parent) {
+                    // Méthode 1: home-assistant element
+                    const ha = window.parent.document.querySelector('home-assistant');
+                    if (ha && ha.hass) {
+                        console.log('[Alarme Panel] Found hass via home-assistant element');
+                        return ha.hass;
+                    }
+                    
+                    // Méthode 2: home-assistant-main
+                    const main = window.parent.document.querySelector('home-assistant-main');
+                    if (main && main.hass) {
+                        console.log('[Alarme Panel] Found hass via home-assistant-main element');
+                        return main.hass;
+                    }
+                    
+                    // Méthode 3: partial-panel-resolver
+                    const panel = window.parent.document.querySelector('partial-panel-resolver');
+                    if (panel && panel.hass) {
+                        console.log('[Alarme Panel] Found hass via partial-panel-resolver');
+                        return panel.hass;
+                    }
+                }
+                
+                console.log('[Alarme Panel] No hass connection found');
+                return null;
+            } catch (e) {
+                console.error('[Alarme Panel] Error getting hass:', e);
+                return null;
             }
         }
         
@@ -369,7 +335,9 @@
                 'armed_vacation': 'Armé (Vacances)',
                 'pending': 'En attente',
                 'arming': 'Armement en cours',
-                'triggered': 'Déclenchée!'
+                'triggered': 'Déclenchée!',
+                'unavailable': 'Indisponible',
+                'unknown': 'Inconnu'
             };
             return translations[state] || state;
         }
@@ -378,27 +346,33 @@
             if (state === 'disarmed') return 'state-disarmed';
             if (state === 'triggered') return 'state-triggered';
             if (state === 'pending') return 'state-pending';
+            if (state === 'arming') return 'state-arming';
             return 'state-armed';
         }
         
         function refreshData() {
-            const hass = window.hass || getHass();
-            if (!hass || !hass.states) {
-                console.log('HASS not available yet');
+            const hass = hassConnection || getHassConnection();
+            
+            if (!hass) {
+                console.log('[Alarme Panel] No hass connection available for refresh');
                 return;
             }
             
-            const entity = hass.states[alarmEntityId];
-            if (!entity) {
-                console.error('Alarm entity not found:', alarmEntityId);
+            if (!hass.states || !hass.states[ALARM_ENTITY_ID]) {
+                console.error('[Alarme Panel] Alarm entity not found:', ALARM_ENTITY_ID);
+                document.getElementById('currentState').innerHTML = 
+                    '<span class="error-message">Entité alarme introuvable</span>';
                 return;
             }
+            
+            const entity = hass.states[ALARM_ENTITY_ID];
+            console.log('[Alarme Panel] Entity state:', entity.state);
             
             // Mettre à jour l'état
-            const stateElement = document.getElementById('currentState');
             const stateText = getStateTranslation(entity.state);
             const stateClass = getStateClass(entity.state);
-            stateElement.innerHTML = `<span class="state-badge ${stateClass}">${stateText}</span>`;
+            document.getElementById('currentState').innerHTML = 
+                `<span class="state-badge ${stateClass}">${stateText}</span>`;
             
             // Mettre à jour les attributs
             document.getElementById('triggeredCount').textContent = 
@@ -413,36 +387,37 @@
                 entity.attributes.last_triggered_by || 'Aucun';
             
             // Afficher les capteurs
-            displaySensors(entity.attributes.monitored_sensors);
+            displaySensors(entity.attributes.monitored_sensors, hass);
             
             // Charger les logs
-            loadLogs();
+            loadLogs(hass);
         }
         
-        function displaySensors(sensors) {
-            const hass = window.hass || getHass();
-            if (!sensors || !hass) return;
+        function displaySensors(sensors, hass) {
+            if (!sensors || !hass) {
+                document.getElementById('sensorsContainer').innerHTML = 
+                    '<p class="loading">Aucun capteur configuré</p>';
+                return;
+            }
             
             const container = document.getElementById('sensorsContainer');
             let html = '';
             
             const modes = [
-                { key: 'home', label: 'Domicile', icon: 'mdi:home' },
-                { key: 'away', label: 'Absent', icon: 'mdi:exit-run' },
-                { key: 'vacation', label: 'Vacances', icon: 'mdi:airplane' }
+                { key: 'home', label: '?? Domicile' },
+                { key: 'away', label: '?? Absent' },
+                { key: 'vacation', label: '?? Vacances' }
             ];
             
             modes.forEach(mode => {
                 const modeSensors = sensors[mode.key] || [];
                 if (modeSensors.length > 0) {
-                    html += `<h3 style="margin-top: 15px; margin-bottom: 10px; font-size: 16px;">
-                        &#x1F3E0; ${mode.label}
-                    </h3>`;
+                    html += `<h3 style="margin: 15px 0 10px 0; font-size: 16px;">${mode.label}</h3>`;
                     html += '<ul class="sensors-list">';
                     
                     modeSensors.forEach(sensorId => {
                         const sensor = hass.states[sensorId];
-                        const name = sensor ? sensor.attributes.friendly_name || sensorId : sensorId;
+                        const name = sensor ? (sensor.attributes.friendly_name || sensorId) : sensorId;
                         const state = sensor ? sensor.state : 'unknown';
                         const stateClass = state === 'on' ? 'sensor-on' : 'sensor-off';
                         const stateText = state === 'on' ? 'ACTIF' : 'Inactif';
@@ -458,31 +433,33 @@
             });
             
             if (html === '') {
-                html = '<p>Aucun capteur configuré</p>';
+                html = '<p class="loading">Aucun capteur configuré</p>';
             }
             
             container.innerHTML = html;
         }
         
-        function loadLogs() {
-            const hass = window.hass || getHass();
-            if (!hass || !hass.callWS) return;
+        function loadLogs(hass) {
+            if (!hass || !hass.callWS) {
+                console.log('[Alarme Panel] Cannot load logs, hass.callWS not available');
+                return;
+            }
             
             const logContainer = document.getElementById('logContainer');
-            let html = '';
             
-            // Récupérer les événements d'alarme récents
             hass.callWS({
                 type: 'logbook/get_events',
                 start_time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-                entity: alarmEntityId
+                entity: ALARM_ENTITY_ID
             }).then(events => {
+                let html = '';
+                
                 if (events && events.length > 0) {
                     events.reverse().slice(0, 20).forEach(event => {
                         const timestamp = new Date(event.when).toLocaleString('fr-FR');
-                        const message = event.message || event.name;
-                        const logClass = event.state === 'triggered' ? 'error' : 
-                                       event.state && event.state.includes('armed') ? 'warning' : 'info';
+                        const message = event.message || event.name || 'Événement';
+                        const logClass = (event.state === 'triggered') ? 'error' : 
+                                       (event.state && event.state.includes('armed')) ? 'warning' : 'info';
                         
                         html += `<div class="log-entry ${logClass}">
                             <span class="timestamp">[${timestamp}]</span>
@@ -490,20 +467,24 @@
                         </div>`;
                     });
                 } else {
-                    html = '<div class="log-entry info">Aucun événement récent</div>';
+                    html = '<div class="log-entry">Aucun événement dans les dernières 24 heures</div>';
                 }
+                
                 logContainer.innerHTML = html;
             }).catch(err => {
-                console.error('Error loading logs:', err);
-                logContainer.innerHTML = '<div class="log-entry error">Erreur lors du chargement des logs</div>';
+                console.error('[Alarme Panel] Error loading logs:', err);
+                logContainer.innerHTML = 
+                    '<div class="log-entry error">Erreur lors du chargement des logs</div>';
             });
         }
         
         function openSettings() {
-            const hass = window.hass || getHass();
-            if (!hass || !hass.callWS) return;
+            const hass = hassConnection || getHassConnection();
+            if (!hass || !hass.callWS) {
+                alert('Impossible de se connecter à Home Assistant');
+                return;
+            }
             
-            // Trouver l'entry_id de l'alarme
             hass.callWS({
                 type: 'config/config_entries/list'
             }).then(entries => {
@@ -511,25 +492,38 @@
                 if (alarmEntry) {
                     const url = `/config/integrations/config_entry/${alarmEntry.entry_id}`;
                     window.parent.location.href = url;
+                } else {
+                    alert('Impossible de trouver la configuration de l\'alarme');
                 }
+            }).catch(err => {
+                console.error('[Alarme Panel] Error opening settings:', err);
+                alert('Erreur lors de l\'ouverture des paramètres');
             });
         }
         
         function resetTriggerCount() {
-            const hass = window.hass || getHass();
-            if (!hass || !hass.callService) return;
-            
-            if (confirm('Voulez-vous vraiment réinitialiser le compteur de déclenchements ?')) {
-                hass.callService('alarme_personnalisee', 'reset_trigger_count', {
-                    entity_id: alarmEntityId
-                }).then(() => {
-                    alert('Compteur réinitialisé avec succès');
-                    refreshData();
-                }).catch(err => {
-                    alert('Erreur lors de la réinitialisation: ' + err.message);
-                });
+            const hass = hassConnection || getHassConnection();
+            if (!hass || !hass.callService) {
+                alert('Impossible de se connecter à Home Assistant');
+                return;
             }
+            
+            if (!confirm('Voulez-vous vraiment réinitialiser le compteur de déclenchements ?')) {
+                return;
+            }
+            
+            hass.callService('alarme_personnalisee', 'reset_trigger_count', {
+                entity_id: ALARM_ENTITY_ID
+            }).then(() => {
+                alert('Compteur réinitialisé avec succès');
+                setTimeout(refreshData, 500);
+            }).catch(err => {
+                console.error('[Alarme Panel] Error resetting count:', err);
+                alert('Erreur lors de la réinitialisation: ' + err.message);
+            });
         }
+        
+        console.log('[Alarme Panel] Script loaded');
     </script>
 </body>
 </html>
