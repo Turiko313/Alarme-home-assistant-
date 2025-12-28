@@ -61,55 +61,42 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
 
         schema = vol.Schema(
             {
+                vol.Optional("code", default=options.get("code", "")): str,
                 vol.Optional(
-                    "code",
-                    default=options.get("code", ""),
-                ): str,
-                vol.Optional(
-                    "require_arm_code",
-                    default=options.get("require_arm_code", False),
+                    "require_arm_code", default=options.get("require_arm_code", False)
                 ): bool,
                 vol.Optional(
                     "require_disarm_code",
                     default=options.get("require_disarm_code", False),
                 ): bool,
                 vol.Optional(
-                    "emergency_code",
-                    default=options.get("emergency_code", ""),
+                    "emergency_code", default=options.get("emergency_code", "")
                 ): str,
                 vol.Optional(
-                    "arming_time",
-                    default=options.get("arming_time", 30),
+                    "arming_time", default=options.get("arming_time", 30)
                 ): int,
+                vol.Optional("delay_time", default=options.get("delay_time", 30)): int,
                 vol.Optional(
-                    "delay_time",
-                    default=options.get("delay_time", 30),
-                ): int,
-                vol.Optional(
-                    "trigger_time",
-                    default=options.get("trigger_time", 180),
+                    "trigger_time", default=options.get("trigger_time", 180)
                 ): int,
                 vol.Optional(
                     "rearm_after_trigger",
                     default=options.get("rearm_after_trigger", False),
                 ): bool,
                 vol.Optional(
-                    "away_sensors",
-                    default=options.get("away_sensors", []),
+                    "away_sensors", default=options.get("away_sensors", [])
                 ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
+                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True)
                 ),
                 vol.Optional(
-                    "home_sensors",
-                    default=options.get("home_sensors", []),
+                    "home_sensors", default=options.get("home_sensors", [])
                 ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
+                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True)
                 ),
                 vol.Optional(
-                    "vacation_sensors",
-                    default=options.get("vacation_sensors", []),
+                    "vacation_sensors", default=options.get("vacation_sensors", [])
                 ): selector.EntitySelector(
-                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
+                    selector.EntitySelectorConfig(domain="binary_sensor", multiple=True)
                 ),
             }
         )
