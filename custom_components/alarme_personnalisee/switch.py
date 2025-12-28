@@ -1,4 +1,4 @@
-"""Switch entities for Alarme Personnalisée."""
+"""Switch entities for Alarme Personnalisee."""
 from __future__ import annotations
 
 import logging
@@ -32,12 +32,12 @@ class RearmAfterTriggerSwitch(SwitchEntity):
         self.hass = hass
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_rearm_after_trigger"
-        self._attr_name = "Réarmer après déclenchement"
+        self._attr_name = "Rearmer apres declenchement"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "Alarme Personnalisée",
+            "name": "Alarme Personnalisee",
             "manufacturer": "Custom",
-            "model": "Alarme Personnalisée",
+            "model": "Alarme Personnalisee",
         }
         self._update_state()
 

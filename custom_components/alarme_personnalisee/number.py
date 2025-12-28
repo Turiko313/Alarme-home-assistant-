@@ -1,4 +1,4 @@
-"""Number entities for Alarme Personnalisée."""
+"""Number entities for Alarme Personnalisee."""
 from __future__ import annotations
 
 import logging
@@ -45,9 +45,9 @@ class AlarmTimeNumber(NumberEntity):
         self._attr_icon = icon
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "Alarme Personnalisée",
+            "name": "Alarme Personnalisee",
             "manufacturer": "Custom",
-            "model": "Alarme Personnalisée",
+            "model": "Alarme Personnalisee",
         }
         self._update_value()
 
@@ -78,7 +78,7 @@ class ArmingTimeNumber(AlarmTimeNumber):
             hass,
             entry,
             "arming_time",
-            "Délai d'armement",
+            "Delai d'armement",
             "mdi:timer-sand"
         )
 
@@ -92,7 +92,7 @@ class DelayTimeNumber(AlarmTimeNumber):
             hass,
             entry,
             "delay_time",
-            "Délai d'entrée",
+            "Delai d'entree",
             "mdi:timer-outline"
         )
 
@@ -106,7 +106,7 @@ class TriggerTimeNumber(AlarmTimeNumber):
             hass,
             entry,
             "trigger_time",
-            "Durée de déclenchement",
+            "Duree de declenchement",
             "mdi:timer-alert-outline"
         )
         self._attr_native_max_value = 1800  # 30 minutes max

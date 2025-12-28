@@ -1,4 +1,4 @@
-"""Button entities for Alarme Personnalisée."""
+"""Button entities for Alarme Personnalisee."""
 from __future__ import annotations
 
 import logging
@@ -32,17 +32,17 @@ class ResetTriggerCountButton(ButtonEntity):
         self.hass = hass
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_reset_trigger_count"
-        self._attr_name = "Réinitialiser le compteur"
+        self._attr_name = "Reinitialiser le compteur"
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "Alarme Personnalisée",
+            "name": "Alarme Personnalisee",
             "manufacturer": "Custom",
-            "model": "Alarme Personnalisée",
+            "model": "Alarme Personnalisee",
         }
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        # Trouver l'entité alarme
+        # Trouver l'entite alarme
         for entry_id, entity in self.hass.data.get(DOMAIN, {}).items():
             if hasattr(entity, '_triggered_count'):
                 entity._triggered_count = 0

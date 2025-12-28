@@ -1,4 +1,4 @@
-"""Sensor entities for Alarme Personnalisée."""
+"""Sensor entities for Alarme Personnalisee."""
 from __future__ import annotations
 
 import logging
@@ -42,16 +42,16 @@ class AlarmBaseSensor(SensorEntity):
         self._alarm_entity_id = alarm_entity_id
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "Alarme Personnalisée",
+            "name": "Alarme Personnalisee",
             "manufacturer": "Custom",
-            "model": "Alarme Personnalisée",
+            "model": "Alarme Personnalisee",
         }
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
         
-        # Écouter les changements de l'entité alarme
+        # Ecouter les changements de l'entite alarme
         self.async_on_remove(
             async_track_state_change_event(
                 self.hass,
@@ -60,7 +60,7 @@ class AlarmBaseSensor(SensorEntity):
             )
         )
         
-        # Mettre à jour immédiatement
+        # Mettre a jour immediatement
         self._update_from_alarm()
 
     @callback
@@ -78,13 +78,13 @@ class TriggerCountSensor(AlarmBaseSensor):
     """Sensor for trigger count."""
 
     _attr_icon = "mdi:counter"
-    _attr_native_unit_of_measurement = "déclenchements"
+    _attr_native_unit_of_measurement = "declenchements"
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, alarm_entity_id: str) -> None:
         """Initialize the sensor."""
         super().__init__(hass, entry, alarm_entity_id)
         self._attr_unique_id = f"{entry.entry_id}_trigger_count"
-        self._attr_name = "Nombre de déclenchements"
+        self._attr_name = "Nombre de declenchements"
 
     def _update_from_alarm(self) -> None:
         """Update from alarm entity."""
@@ -102,7 +102,7 @@ class LastTriggeredBySensor(AlarmBaseSensor):
         """Initialize the sensor."""
         super().__init__(hass, entry, alarm_entity_id)
         self._attr_unique_id = f"{entry.entry_id}_last_triggered_by"
-        self._attr_name = "Dernier capteur déclencheur"
+        self._attr_name = "Dernier capteur declencheur"
 
     def _update_from_alarm(self) -> None:
         """Update from alarm entity."""
@@ -110,7 +110,7 @@ class LastTriggeredBySensor(AlarmBaseSensor):
         if alarm_state:
             triggered_by = alarm_state.attributes.get("last_triggered_by")
             if triggered_by:
-                # Essayer de récupérer le nom convivial du capteur
+                # Essayer de recuperer le nom convivial du capteur
                 sensor_state = self.hass.states.get(triggered_by)
                 if sensor_state:
                     self._attr_native_value = sensor_state.attributes.get("friendly_name", triggered_by)
