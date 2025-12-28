@@ -56,7 +56,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         options = self._entry.options
         self._code = options.get("code", "")
         self._require_arm_code = options.get("require_arm_code", False)
-        self._require_disarm_code = options.get("require_disarm_code", True)
+        self._require_disarm_code = options.get("require_disarm_code", False)
         self._emergency_code = options.get("emergency_code", "")
         self._arming_time = max(0, options.get("arming_time", 30))
         self._delay_time = max(0, options.get("delay_time", 30))
@@ -103,6 +103,19 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             | AlarmControlPanelEntityFeature.ARM_AWAY
             | AlarmControlPanelEntityFeature.ARM_VACATION
         )
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return additional state attributes."""
+        features = self.supported_features
+        return {
+            "supported_features_list": [
+                feature.name
+                for feature in AlarmControlPanelEntityFeature
+                # Skip the zero-value placeholder feature.
+                if feature.value != 0 and features & feature
+            ],
+        }
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
@@ -179,25 +192,53 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
+        await self._perform_disarm(code)
+
+    def _validate_disarm_code(self, code: str | None) -> tuple[bool, bool]:
+        """Validate disarm code.
+
+        Returns:
+            tuple[bool, bool]: (is_valid, is_emergency) where is_emergency
+            is True only when the emergency code matches.
+        """
+        if self._emergency_code and code == self._emergency_code:
+            return True, True
+
+        if self._require_disarm_code:
+            if not self._code:
+                _LOGGER.warning("Disarm requires a code, but none is set.")
+                return False, False
+            if code != self._code:
+                _LOGGER.warning("Invalid code provided for disarming.")
+                return False, False
+
+        return True, False
+
+    async def _perform_disarm(
+        self, code: str | None = None, validation: tuple[bool, bool] | None = None
+    ) -> None:
+        """Handle disarm logic with validation.
+
+        Args:
+            code: The provided code to validate.
+            validation: Optional pre-validated (is_valid, is_emergency) tuple
+                to avoid re-validation when already performed by caller.
+        """
         # Check if already disarmed
         if self._state == AlarmControlPanelState.DISARMED:
             _LOGGER.info("Alarm is already disarmed. Ignoring disarm request.")
             return
 
-        # Check for emergency code first
-        if self._emergency_code and code == self._emergency_code:
+        validation_result = (
+            validation if validation is not None else self._validate_disarm_code(code)
+        )
+        is_valid, is_emergency = validation_result
+        if not is_valid:
+            return
+
+        if is_emergency:
             _LOGGER.warning("Emergency code used to disarm alarm!")
             self.hass.bus.async_fire(f"{DOMAIN}.urgence", {"entity_id": self.entity_id})
-            # Disarm without further checks
-
-        # Check for regular code if required
-        elif self._require_disarm_code:
-            if not self._code:
-                _LOGGER.warning("Disarm requires a code, but none is set.")
-                return
-            if code != self._code:
-                _LOGGER.warning("Invalid code provided for disarming.")
-                return
 
         # If we reach here, disarming is successful
         _LOGGER.info("Alarm disarmed from state: %s", self._state)
@@ -223,7 +264,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         """
         # Check if already armed in the requested state
         if self._state == state:
-            _LOGGER.info("Alarm is already armed in %s mode. Ignoring arm request.", state)
+            _LOGGER.info("Alarm is already armed in %s mode. Toggling to disarm.", state)
+            is_valid, is_emergency = self._validate_disarm_code(code)
+            if not is_valid:
+                return
+            await self._perform_disarm(code, (is_valid, is_emergency))
             return
 
         # Prevent arming while in ARMING state
