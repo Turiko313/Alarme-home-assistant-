@@ -63,51 +63,51 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Optional(
                     "code",
-                    description={"suggested_value": options.get("code")},
+                    default=options.get("code", ""),
                 ): str,
                 vol.Optional(
                     "require_arm_code",
-                    description={"suggested_value": options.get("require_arm_code", False)},
+                    default=options.get("require_arm_code", False),
                 ): bool,
                 vol.Optional(
                     "require_disarm_code",
-                    description={"suggested_value": options.get("require_disarm_code", False)},
+                    default=options.get("require_disarm_code", False),
                 ): bool,
                 vol.Optional(
                     "emergency_code",
-                    description={"suggested_value": options.get("emergency_code")},
+                    default=options.get("emergency_code", ""),
                 ): str,
                 vol.Optional(
                     "arming_time",
-                    description={"suggested_value": options.get("arming_time", 30)},
+                    default=options.get("arming_time", 30),
                 ): int,
                 vol.Optional(
                     "delay_time",
-                    description={"suggested_value": options.get("delay_time", 30)},
+                    default=options.get("delay_time", 30),
                 ): int,
                 vol.Optional(
                     "trigger_time",
-                    description={"suggested_value": options.get("trigger_time", 180)},
+                    default=options.get("trigger_time", 180),
                 ): int,
                 vol.Optional(
                     "rearm_after_trigger",
-                    description={"suggested_value": options.get("rearm_after_trigger", False)},
+                    default=options.get("rearm_after_trigger", False),
                 ): bool,
                 vol.Optional(
                     "away_sensors",
-                    description={"suggested_value": options.get("away_sensors", [])},
+                    default=options.get("away_sensors", []),
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
                 vol.Optional(
                     "home_sensors",
-                    description={"suggested_value": options.get("home_sensors", [])},
+                    default=options.get("home_sensors", []),
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
                 vol.Optional(
                     "vacation_sensors",
-                    description={"suggested_value": options.get("vacation_sensors", [])},
+                    default=options.get("vacation_sensors", []),
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="binary_sensor", multiple=True),
                 ),
