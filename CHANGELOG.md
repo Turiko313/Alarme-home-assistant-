@@ -5,6 +5,21 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.2.0] - 2025-01-XX
+
+### Ajouté
+- **Panneau personnalisé dans la barre latérale** :
+  - Nouveau panneau "Alarme" accessible directement depuis la sidebar
+  - Interface visuelle avec l'état de l'alarme en temps réel
+  - Affichage des statistiques (nombre de déclenchements, dernier capteur déclenché)
+  - Liste des capteurs surveillés par mode avec leur état actuel
+  - Journal des événements des dernières 24 heures
+  - Actions rapides : modifier les paramètres, réinitialiser le compteur, actualiser
+  
+### Modifié
+- Interface améliorée avec design moderne et responsive
+- Mise à jour automatique des données toutes les 5 secondes
+
 ## [1.1.0] - 2025-01-XX
 
 ### Ajouté

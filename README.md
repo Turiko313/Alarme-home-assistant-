@@ -2,15 +2,17 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 
-Ce composant personnalisé pour Home Assistant vous permet de créer une alarme de sécurité flexible et configurable.
+Ce composant personnalisé pour Home Assistant vous permet de créer une alarme de sécurité flexible et configurable avec un panneau dédié dans la barre latérale.
 
 ## Fonctionnalités
 
+-   **Panneau dédié** : Interface visuelle accessible depuis la barre latérale avec état en temps réel, statistiques et logs
 -   **Modes d'alarme multiples :** Prend en charge les modes `À domicile` (armed_home), `Extérieur` (armed_away), et `Vacances` (armed_vacation).
 -   **Comportement de bascule :** Activez un mode en cliquant sur son icône. Cliquez à nouveau pour le désactiver. Fini le bouton "Désactiver" !
 -   **Configuration facile :** Entièrement configurable via l'interface utilisateur de Home Assistant.
 -   **Déclencheurs personnalisables :** Définissez les capteurs qui déclencheront l'alarme.
 -   **Suivi avancé :** Compteur de déclenchements, dernier capteur déclenché, horodatage des changements.
+-   **Journal des événements :** Visualisez l'historique des 24 dernières heures directement dans le panneau
 -   **Événements personnalisés :** Événements pour les déclenchements et les désarmements d'urgence.
 -   **Compatibilité HACS :** Installation et mises à jour faciles via le [Home Assistant Community Store (HACS)](https://hacs.xyz/).
 
@@ -39,6 +41,19 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
     *   **Code d'armement/désarmement :** Définissez un code PIN (optionnel).
     *   **Temporisations :** Configurez les délais d'armement, d'entrée et de déclenchement.
     *   **Capteurs :** Sélectionnez les capteurs pour chaque mode d'alarme.
+
+## Utilisation du panneau
+
+Après l'installation, un nouveau panneau **"Alarme"** apparaît dans la barre latérale de Home Assistant. Ce panneau vous permet de :
+
+-   **Visualiser l'état actuel** de l'alarme avec un badge coloré
+-   **Voir les statistiques** : nombre de déclenchements, dernier déclenchement, capteur déclencheur
+-   **Surveiller les capteurs** : liste de tous les capteurs configurés avec leur état actuel
+-   **Consulter le journal** : historique des événements des dernières 24 heures
+-   **Accès rapide aux paramètres** : modifier la configuration en un clic
+-   **Actions rapides** : réinitialiser le compteur, actualiser les données
+
+Le panneau se met à jour automatiquement toutes les 5 secondes.
 
 ## Utilisation dans Lovelace
 
