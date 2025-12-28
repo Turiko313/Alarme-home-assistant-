@@ -206,7 +206,21 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._cancel_timer()
         self.async_write_ha_state()
 
-    async def _arm(self, state: str, code: str | None = None):
+    async def _arm(self, state: AlarmControlPanelState, code: str | None = None):
+        """Arm the alarm to the specified state.
+        
+        Args:
+            state: The target armed state (ARMED_HOME, ARMED_AWAY, or ARMED_VACATION)
+            code: Optional code for arming (if required)
+            
+        Returns:
+            None. State changes are reflected in self._state and logged.
+            
+        State validations:
+            - Prevents arming if already in the requested state
+            - Prevents arming while in ARMING, PENDING, or TRIGGERED states
+            - Validates code if required
+        """
         # Check if already armed in the requested state
         if self._state == state:
             _LOGGER.info("Alarm is already armed in %s mode. Ignoring arm request.", state)
