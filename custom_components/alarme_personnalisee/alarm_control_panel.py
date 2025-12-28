@@ -14,6 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 
@@ -26,8 +27,11 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the alarm control panel platform."""
-    async_add_entities([AlarmePersonnaliseeEntity(hass, entry)])
-
+    entity = AlarmePersonnaliseeEntity(hass, entry)
+    async_add_entities([entity])
+    
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = entity
 
 class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     """Representation of an Alarme Personnalisée."""
@@ -43,6 +47,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._state = AlarmControlPanelState.DISARMED
         self._last_armed_state = None
         self._timer_handle = None
+        self._last_triggered_by = None
+        self._last_changed_at = None
+        self._triggered_count = 0
 
         self._update_options()
         self._unsub_listener = None
@@ -108,14 +115,32 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     def extra_state_attributes(self) -> dict:
         """Return additional state attributes."""
         features = self.supported_features
-        return {
+        attrs = {
             "supported_features_list": [
                 feature.name
                 for feature in AlarmControlPanelEntityFeature
                 # Skip the zero-value placeholder feature.
                 if feature.value != 0 and features & feature
             ],
+            "triggered_count": self._triggered_count,
         }
+        
+        if self._last_triggered_by:
+            attrs["last_triggered_by"] = self._last_triggered_by
+        
+        if self._last_changed_at:
+            attrs["last_changed_at"] = self._last_changed_at.isoformat()
+            
+        if self._last_armed_state:
+            attrs["last_armed_state"] = self._last_armed_state
+            
+        attrs["monitored_sensors"] = {
+            "away": self._away_sensors,
+            "home": self._home_sensors,
+            "vacation": self._vacation_sensors,
+        }
+        
+        return attrs
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
@@ -167,7 +192,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             return
 
         _LOGGER.info("Alarm pending due to sensor %s", entity_id)
+        self._last_triggered_by = entity_id
         self._state = AlarmControlPanelState.PENDING
+        self._last_changed_at = dt_util.utcnow()
         self.async_write_ha_state()
         self._timer_handle = async_call_later(self.hass, self._delay_time, self._trigger_alarm)
 
@@ -176,7 +203,19 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         """Trigger the alarm."""
         _LOGGER.warning("Alarm triggered!")
         self._state = AlarmControlPanelState.TRIGGERED
+        self._triggered_count += 1
+        self._last_changed_at = dt_util.utcnow()
         self.async_write_ha_state()
+        
+        self.hass.bus.async_fire(
+            f"{DOMAIN}.triggered",
+            {
+                "entity_id": self.entity_id,
+                "triggered_by": self._last_triggered_by,
+                "timestamp": self._last_changed_at.isoformat(),
+            },
+        )
+        
         self._timer_handle = async_call_later(self.hass, self._trigger_time, self._post_trigger_action)
 
     @callback
@@ -188,6 +227,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         else:
             _LOGGER.info("Disarming alarm after trigger.")
             self._state = AlarmControlPanelState.DISARMED
+        self._last_changed_at = dt_util.utcnow()
         self.async_write_ha_state()
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
@@ -224,7 +264,6 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             validation: Optional pre-validated (is_valid, is_emergency) tuple
                 to avoid re-validation when already performed by caller.
         """
-        # Check if already disarmed
         if self._state == AlarmControlPanelState.DISARMED:
             _LOGGER.info("Alarm is already disarmed. Ignoring disarm request.")
             return
@@ -240,10 +279,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             _LOGGER.warning("Emergency code used to disarm alarm!")
             self.hass.bus.async_fire(f"{DOMAIN}.urgence", {"entity_id": self.entity_id})
 
-        # If we reach here, disarming is successful
         _LOGGER.info("Alarm disarmed from state: %s", self._state)
         self._state = AlarmControlPanelState.DISARMED
         self._last_armed_state = None
+        self._last_triggered_by = None
+        self._last_changed_at = dt_util.utcnow()
         self._cancel_timer()
         self.async_write_ha_state()
 
@@ -305,6 +345,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     def _finish_arming(self, now: datetime):
         _LOGGER.info("Alarm armed to %s", self._last_armed_state)
         self._state = self._last_armed_state
+        self._last_changed_at = dt_util.utcnow()
         self.async_write_ha_state()
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:

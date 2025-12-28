@@ -10,6 +10,8 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
 -   **Comportement de bascule :** Activez un mode en cliquant sur son icône. Cliquez à nouveau pour le désactiver. Fini le bouton "Désactiver" !
 -   **Configuration facile :** Entièrement configurable via l'interface utilisateur de Home Assistant.
 -   **Déclencheurs personnalisables :** Définissez les capteurs qui déclencheront l'alarme.
+-   **Suivi avancé :** Compteur de déclenchements, dernier capteur déclenché, horodatage des changements.
+-   **Événements personnalisés :** Événements pour les déclenchements et les désarmements d'urgence.
 -   **Compatibilité HACS :** Installation et mises à jour faciles via le [Home Assistant Community Store (HACS)](https://hacs.xyz/).
 
 ## Installation
@@ -116,6 +118,11 @@ cards:
 ### Attributs
 
 -   `supported_features_list`: Une liste des modes d'armement pris en charge (par exemple, `["ARM_HOME", "ARM_AWAY", "ARM_VACATION"]`). Utile pour les automatisations ou les cartes Lovelace dynamiques.
+-   `triggered_count`: Nombre total de fois que l'alarme a été déclenchée.
+-   `last_triggered_by`: ID du dernier capteur ayant déclenché l'alarme.
+-   `last_changed_at`: Horodatage ISO du dernier changement d'état.
+-   `last_armed_state`: Dernier état d'armement avant désarmement.
+-   `monitored_sensors`: Liste des capteurs surveillés par mode (away, home, vacation).
 
 ### Services
 
@@ -125,8 +132,36 @@ Les services suivants peuvent être appelés dans vos automatisations ou scripts
 -   `alarm_control_panel.alarm_arm_away`
 -   `alarm_control_panel.alarm_arm_vacation`
 -   `alarm_control_panel.alarm_disarm`
+-   `alarme_personnalisee.reset_trigger_count` - Réinitialise le compteur de déclenchements
 
 Grâce au comportement de bascule, appeler un service d'armement sur un mode déjà actif désarmera l'alarme.
+
+### Événements
+
+L'intégration émet les événements suivants :
+
+-   `alarme_personnalisee.triggered` - Déclenché quand l'alarme se déclenche
+  - `entity_id`: ID de l'entité d'alarme
+  - `triggered_by`: ID du capteur qui a déclenché l'alarme
+  - `timestamp`: Horodatage du déclenchement
+  
+-   `alarme_personnalisee.urgence` - Déclenché lors d'un désarmement avec le code d'urgence
+  - `entity_id`: ID de l'entité d'alarme
+
+### Exemple d'automatisation
+
+```yaml
+automation:
+  - alias: "Notification déclenchement alarme"
+    trigger:
+      - platform: event
+        event_type: alarme_personnalisee.triggered
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "🚨 Alarme déclenchée!"
+          message: "Capteur: {{ trigger.event.data.triggered_by }}"
+```
 
 ---
 

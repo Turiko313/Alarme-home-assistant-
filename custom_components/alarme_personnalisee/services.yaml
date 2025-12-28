@@ -1,0 +1,12 @@
+reset_trigger_count:
+  name: Réinitialiser le compteur de déclenchements
+  description: Réinitialise le compteur de déclenchements de l'alarme à zéro.
+  fields:
+    entity_id:
+      name: Entité
+      description: L'ID de l'entité d'alarme à réinitialiser.
+      required: true
+      example: "alarm_control_panel.alarme"
+      selector:
+        entity:
+          domain: alarm_control_panel
