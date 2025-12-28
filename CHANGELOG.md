@@ -5,7 +5,14 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [1.3.1] - 2025-01-XX
+## [1.3.2] - 2025-12-28
+
+### Corrigé
+- **?? ERREUR UTF-8** : Retrait de tous les accents dans les fichiers Python pour éviter les erreurs d'encodage
+  - Fichiers corrigés : `button.py`, `sensor.py`, `switch.py`, `number.py`
+  - Les traductions avec accents restent dans les fichiers JSON (qui supportent l'UTF-8)
+
+## [1.3.1] - 2025-12-28
 
 ### Corrigé
 - **?? BUG CRITIQUE** : Les capteurs sont maintenant surveillés **pendant le délai d'armement**
@@ -19,7 +26,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Sécurité
 - Amélioration significative de la sécurité : impossible d'armer avec une porte/fenêtre ouverte
 
-## [1.3.0] - 2025-01-XX
+## [1.3.0] - 2025-12-28
 
 ### Ajouté
 - **Nouvelles entités pour une meilleure intégration** :
