@@ -5,6 +5,26 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.2.1] - 2025-01-XX
+
+### Corrigé
+- **Service reset_trigger_count** : Intégré directement dans `__init__.py` pour garantir son chargement
+- **Panneau HTML** : Code simplifié et robusté avec meilleure gestion des erreurs
+- **Connexion hass** : Amélioration de la détection de l'objet hass depuis l'iframe
+- **Logs de débogage** : Ajout de messages console pour faciliter le diagnostic
+
+### Ajouté
+- **Guide de dépannage** : Fichier `TROUBLESHOOTING.md` complet avec :
+  - Checklist de vérification après installation
+  - Solutions aux problèmes courants
+  - Commandes utiles pour RPI5
+  - Instructions de diagnostic
+
+### Modifié
+- Design du panneau simplifié avec emojis au lieu d'icônes MDI
+- Meilleure gestion des erreurs dans le panneau
+- Messages d'erreur plus explicites
+
 ## [1.2.0] - 2025-01-XX
 
 ### Ajouté
