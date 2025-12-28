@@ -211,17 +211,17 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         if self._state == state:
             _LOGGER.info("Alarm is already armed in %s mode. Ignoring arm request.", state)
             return
-        
+
         # Prevent arming while in ARMING state
         if self._state == AlarmControlPanelState.ARMING:
             _LOGGER.warning("Alarm is currently arming. Please wait for arming to complete.")
             return
-        
+
         # Prevent arming while in PENDING state
         if self._state == AlarmControlPanelState.PENDING:
             _LOGGER.warning("Alarm is in PENDING state. Cannot arm now.")
             return
-        
+
         # Prevent arming while in TRIGGERED state
         if self._state == AlarmControlPanelState.TRIGGERED:
             _LOGGER.warning("Alarm is TRIGGERED. Disarm the alarm first before arming again.")
