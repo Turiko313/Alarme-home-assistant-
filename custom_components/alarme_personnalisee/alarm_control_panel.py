@@ -58,9 +58,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._require_arm_code = options.get("require_arm_code", False)
         self._require_disarm_code = options.get("require_disarm_code", True)
         self._emergency_code = options.get("emergency_code", "")
-        self._arming_time = options.get("arming_time", 30)
-        self._delay_time = options.get("delay_time", 30)
-        self._trigger_time = options.get("trigger_time", 180)
+        self._arming_time = max(0, options.get("arming_time", 30))
+        self._delay_time = max(0, options.get("delay_time", 30))
+        self._trigger_time = max(0, options.get("trigger_time", 180))
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
 
         self._away_sensors = options.get("away_sensors", [])
@@ -133,6 +133,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             return
 
         entity_id = event.data.get("entity_id")
+        if not entity_id:
+            _LOGGER.warning("Sensor state change event without entity_id")
+            return
 
         if self._state not in [
             AlarmControlPanelState.ARMED_AWAY,
@@ -176,6 +179,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
+        # Check if already disarmed
+        if self._state == AlarmControlPanelState.DISARMED:
+            _LOGGER.info("Alarm is already disarmed. Ignoring disarm request.")
+            return
+
         # Check for emergency code first
         if self._emergency_code and code == self._emergency_code:
             _LOGGER.warning("Emergency code used to disarm alarm!")
@@ -192,16 +200,47 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
                 return
 
         # If we reach here, disarming is successful
-        if self._state == AlarmControlPanelState.TRIGGERED:
-            pass
-
-        _LOGGER.info("Alarm disarmed")
+        _LOGGER.info("Alarm disarmed from state: %s", self._state)
         self._state = AlarmControlPanelState.DISARMED
         self._last_armed_state = None
         self._cancel_timer()
         self.async_write_ha_state()
 
-    async def _arm(self, state: str, code: str | None = None):
+    async def _arm(self, state: AlarmControlPanelState, code: str | None = None):
+        """Arm the alarm to the specified state.
+        
+        Args:
+            state: The target armed state (ARMED_HOME, ARMED_AWAY, or ARMED_VACATION)
+            code: Optional code for arming (if required)
+            
+        Returns:
+            None. State changes are reflected in self._state and logged.
+            
+        State validations:
+            - Prevents arming if already in the requested state
+            - Prevents arming while in ARMING, PENDING, or TRIGGERED states
+            - Validates code if required
+        """
+        # Check if already armed in the requested state
+        if self._state == state:
+            _LOGGER.info("Alarm is already armed in %s mode. Ignoring arm request.", state)
+            return
+
+        # Prevent arming while in ARMING state
+        if self._state == AlarmControlPanelState.ARMING:
+            _LOGGER.warning("Alarm is currently arming. Please wait for arming to complete.")
+            return
+
+        # Prevent arming while in PENDING state
+        if self._state == AlarmControlPanelState.PENDING:
+            _LOGGER.warning("Alarm is in PENDING state. Cannot arm now.")
+            return
+
+        # Prevent arming while in TRIGGERED state
+        if self._state == AlarmControlPanelState.TRIGGERED:
+            _LOGGER.warning("Alarm is TRIGGERED. Disarm the alarm first before arming again.")
+            return
+
         if self._require_arm_code:
             if not self._code:
                 _LOGGER.warning("Arming requires a code, but none is set.")
