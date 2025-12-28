@@ -2,37 +2,63 @@
   "config": {
     "step": {
       "user": {
-        "title": "Custom Alarm Setup",
-        "description": "Select the sensors to monitor in each mode.",
-        "data": {
-          "away_sensors": "Sensors for Away Mode",
-          "home_sensors": "Sensors for Home Mode",
-          "vacation_sensors": "Sensors for Vacation Mode"
-        }
+        "title": "Custom Alarm",
+        "description": "Configure your custom alarm"
       }
-    },
-    "abort": {
-      "already_configured": "This alarm panel is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Custom Alarm Options",
-        "description": "Configure alarm delays, PIN code, and sensor mappings.",
+        "title": "Alarm Options",
+        "description": "Configure your alarm settings",
         "data": {
-          "code": "PIN Code",
-          "require_arm_code": "Require PIN to arm",
-          "require_disarm_code": "Require PIN to disarm",
-          "emergency_code": "Emergency Code (optional)",
-          "arming_time": "Arming Time (seconds)",
-          "delay_time": "Entry Delay (seconds)",
-          "trigger_time": "Trigger Duration (seconds)",
-          "rearm_after_trigger": "Rearm automatically after being triggered",
-          "away_sensors": "Sensors for Away Mode",
-          "home_sensors": "Sensors for Home Mode",
-          "vacation_sensors": "Sensors for Vacation Mode"
+          "code": "PIN Code (optional)",
+          "require_arm_code": "Require code to arm",
+          "require_disarm_code": "Require code to disarm",
+          "emergency_code": "Emergency code (optional)",
+          "arming_time": "Arming delay (seconds)",
+          "delay_time": "Entry delay (seconds)",
+          "trigger_time": "Trigger duration (seconds)",
+          "rearm_after_trigger": "Automatically rearm after trigger",
+          "away_sensors": "Away mode sensors",
+          "home_sensors": "Home mode sensors",
+          "vacation_sensors": "Vacation mode sensors"
         }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "reset_trigger_count": {
+        "name": "Reset Trigger Count"
+      }
+    },
+    "sensor": {
+      "trigger_count": {
+        "name": "Trigger Count"
+      },
+      "last_triggered_by": {
+        "name": "Last Triggered By"
+      },
+      "last_changed_at": {
+        "name": "Last Changed"
+      }
+    },
+    "switch": {
+      "rearm_after_trigger": {
+        "name": "Rearm After Trigger"
+      }
+    },
+    "number": {
+      "arming_time": {
+        "name": "Arming Delay"
+      },
+      "delay_time": {
+        "name": "Entry Delay"
+      },
+      "trigger_time": {
+        "name": "Trigger Duration"
       }
     }
   }

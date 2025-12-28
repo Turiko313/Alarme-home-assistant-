@@ -3,12 +3,7 @@
     "step": {
       "user": {
         "title": "Configuration de l'Alarme Personnalisée",
-        "description": "Sélectionnez les capteurs à surveiller dans chaque mode.",
-        "data": {
-          "away_sensors": "Capteurs pour le mode Absent",
-          "home_sensors": "Capteurs pour le mode Présent",
-          "vacation_sensors": "Capteurs pour le mode Vacances"
-        }
+        "description": "Sélectionnez les capteurs à surveiller dans chaque mode."
       }
     },
     "abort": {
@@ -21,18 +16,52 @@
         "title": "Options de l'Alarme Personnalisée",
         "description": "Configurez ici les délais, le code PIN et les capteurs de l'alarme.",
         "data": {
-          "code": "Code PIN",
-          "require_arm_code": "Exiger le code PIN pour l'armement",
-          "require_disarm_code": "Exiger le code PIN pour le désarmement",
+          "code": "Code PIN (optionnel)",
+          "require_arm_code": "Exiger un code pour armer",
+          "require_disarm_code": "Exiger un code pour désarmer",
           "emergency_code": "Code d'urgence (optionnel)",
-          "arming_time": "Délai d'activation (secondes)",
+          "arming_time": "Délai d'armement (secondes)",
           "delay_time": "Délai d'entrée (secondes)",
           "trigger_time": "Durée de déclenchement (secondes)",
           "rearm_after_trigger": "Réarmer automatiquement après déclenchement",
-          "away_sensors": "Capteurs pour le mode Absent",
-          "home_sensors": "Capteurs pour le mode Présent",
-          "vacation_sensors": "Capteurs pour le mode Vacances"
+          "away_sensors": "Capteurs en mode Absent",
+          "home_sensors": "Capteurs en mode Domicile",
+          "vacation_sensors": "Capteurs en mode Vacances"
         }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "reset_trigger_count": {
+        "name": "Réinitialiser le compteur"
+      }
+    },
+    "sensor": {
+      "trigger_count": {
+        "name": "Nombre de déclenchements"
+      },
+      "last_triggered_by": {
+        "name": "Dernier capteur déclencheur"
+      },
+      "last_changed_at": {
+        "name": "Dernier changement"
+      }
+    },
+    "switch": {
+      "rearm_after_trigger": {
+        "name": "Réarmer après déclenchement"
+      }
+    },
+    "number": {
+      "arming_time": {
+        "name": "Délai d'armement"
+      },
+      "delay_time": {
+        "name": "Délai d'entrée"
+      },
+      "trigger_time": {
+        "name": "Durée de déclenchement"
       }
     }
   }

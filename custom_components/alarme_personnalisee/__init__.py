@@ -13,7 +13,13 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.ALARM_CONTROL_PANEL]
+PLATFORMS: list[Platform] = [
+    Platform.ALARM_CONTROL_PANEL,
+    Platform.BUTTON,
+    Platform.SENSOR,
+    Platform.SWITCH,
+    Platform.NUMBER,
+]
 
 SERVICE_RESET_TRIGGER_COUNT = "reset_trigger_count"
 
@@ -27,11 +33,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Alarme Personnalisée from a config entry."""
     hass.data.setdefault(DOMAIN, {})
     
-    # PAS DE PANNEAU POUR L'INSTANT - On se concentre sur l'alarme de base
-    
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     
-    # Enregistrer le service reset_trigger_count
+    # Enregistrer le service reset_trigger_count (conservé pour compatibilité)
     async def async_reset_trigger_count(call: ServiceCall) -> None:
         """Reset the trigger count for the alarm."""
         entity_id = call.data.get("entity_id")

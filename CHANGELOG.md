@@ -5,7 +5,30 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [1.2.1] - 2025-01-XX
+## [1.3.0] - 2025-01-XX
+
+### Ajouté
+- **Nouvelles entités pour une meilleure intégration** :
+  - `button.alarme_reset_trigger_count` : Bouton pour réinitialiser le compteur de déclenchements
+  - `sensor.alarme_trigger_count` : Capteur affichant le nombre de déclenchements
+  - `sensor.alarme_last_triggered_by` : Capteur affichant le dernier capteur déclencheur
+  - `sensor.alarme_last_changed_at` : Capteur timestamp du dernier changement d'état
+  - `switch.alarme_rearm_after_trigger` : Interrupteur pour activer/désactiver le réarmement automatique
+  - `number.alarme_arming_time` : Contrôle du délai d'armement (0-600 secondes)
+  - `number.alarme_delay_time` : Contrôle du délai d'entrée (0-600 secondes)
+  - `number.alarme_trigger_time` : Contrôle de la durée de déclenchement (0-1800 secondes)
+
+### Modifié
+- Les nouvelles entités permettent de contrôler les paramètres de l'alarme sans passer par la configuration
+- Toutes les entités sont regroupées sous un même "device" dans Home Assistant
+- Le service `reset_trigger_count` est conservé pour compatibilité
+
+### Amélioré
+- Traductions françaises et anglaises complètes pour toutes les nouvelles entités
+- Les entités se mettent à jour automatiquement quand l'alarme change d'état
+- Interface plus intuitive avec des entités visibles et contrôlables
+
+## [1.2.1] - 2025-12-28
 
 ### Corrigé
 - **Service reset_trigger_count** : Intégré directement dans `__init__.py` pour garantir son chargement

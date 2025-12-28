@@ -2,17 +2,20 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 
-Ce composant personnalisé pour Home Assistant vous permet de créer une alarme de sécurité flexible et configurable avec un panneau dédié dans la barre latérale.
+Ce composant personnalisé pour Home Assistant vous permet de créer une alarme de sécurité flexible et configurable avec des entités dédiées pour un contrôle total.
 
 ## Fonctionnalités
 
--   **Panneau dédié** : Interface visuelle accessible depuis la barre latérale avec état en temps réel, statistiques et logs
 -   **Modes d'alarme multiples :** Prend en charge les modes `À domicile` (armed_home), `Extérieur` (armed_away), et `Vacances` (armed_vacation).
 -   **Comportement de bascule :** Activez un mode en cliquant sur son icône. Cliquez à nouveau pour le désactiver. Fini le bouton "Désactiver" !
+-   **Entités dédiées** : Contrôlez tous les aspects de l'alarme via des entités natives Home Assistant :
+    - **Bouton** : Réinitialiser le compteur de déclenchements
+    - **Capteurs** : Nombre de déclenchements, dernier capteur, dernier changement
+    - **Interrupteur** : Activer/désactiver le réarmement automatique
+    - **Contrôles numériques** : Modifier les délais d'armement, d'entrée et de déclenchement en temps réel
 -   **Configuration facile :** Entièrement configurable via l'interface utilisateur de Home Assistant.
 -   **Déclencheurs personnalisables :** Définissez les capteurs qui déclencheront l'alarme.
 -   **Suivi avancé :** Compteur de déclenchements, dernier capteur déclenché, horodatage des changements.
--   **Journal des événements :** Visualisez l'historique des 24 dernières heures directement dans le panneau
 -   **Événements personnalisés :** Événements pour les déclenchements et les désarmements d'urgence.
 -   **Compatibilité HACS :** Installation et mises à jour faciles via le [Home Assistant Community Store (HACS)](https://hacs.xyz/).
 
@@ -42,18 +45,26 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
     *   **Temporisations :** Configurez les délais d'armement, d'entrée et de déclenchement.
     *   **Capteurs :** Sélectionnez les capteurs pour chaque mode d'alarme.
 
-## Utilisation du panneau
+## Entités créées
 
-Après l'installation, un nouveau panneau **"Alarme"** apparaît dans la barre latérale de Home Assistant. Ce panneau vous permet de :
+Après l'installation, les entités suivantes seront disponibles :
 
--   **Visualiser l'état actuel** de l'alarme avec un badge coloré
--   **Voir les statistiques** : nombre de déclenchements, dernier déclenchement, capteur déclencheur
--   **Surveiller les capteurs** : liste de tous les capteurs configurés avec leur état actuel
--   **Consulter le journal** : historique des événements des dernières 24 heures
--   **Accès rapide aux paramètres** : modifier la configuration en un clic
--   **Actions rapides** : réinitialiser le compteur, actualiser les données
+### Entité principale
+- `alarm_control_panel.alarme` - L'entité d'alarme principale
 
-Le panneau se met à jour automatiquement toutes les 5 secondes.
+### Capteurs
+- `sensor.alarme_trigger_count` - Nombre total de déclenchements
+- `sensor.alarme_last_triggered_by` - Nom du dernier capteur ayant déclenché l'alarme
+- `sensor.alarme_last_changed_at` - Horodatage du dernier changement d'état
+
+### Contrôles
+- `button.alarme_reset_trigger_count` - Réinitialise le compteur de déclenchements
+- `switch.alarme_rearm_after_trigger` - Active/désactive le réarmement automatique
+- `number.alarme_arming_time` - Contrôle le délai d'armement (0-600s)
+- `number.alarme_delay_time` - Contrôle le délai d'entrée (0-600s)
+- `number.alarme_trigger_time` - Contrôle la durée de déclenchement (0-1800s)
+
+Toutes ces entités sont regroupées sous le même appareil "Alarme Personnalisée" pour une meilleure organisation.
 
 ## Utilisation dans Lovelace
 
