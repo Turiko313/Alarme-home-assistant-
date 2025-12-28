@@ -31,13 +31,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Enregistrer le fichier du panneau
     panel_dir = Path(__file__).parent
-    panel_url = f"/alarme_personnalisee_panel/panel.html"
+    panel_path = str(panel_dir / "panel.html")
     
-    hass.http.register_static_path(
-        panel_url,
-        str(panel_dir / "panel.html"),
-        cache_headers=False
-    )
+    # Utiliser la méthode correcte pour enregistrer un chemin statique
+    await hass.http.async_register_static_paths([
+        {
+            "url_path": "/alarme_personnalisee_panel",
+            "path": str(panel_dir),
+        }
+    ])
     
     # Enregistrer le panneau dans la sidebar
     frontend.async_register_built_in_panel(
@@ -46,7 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         sidebar_title="Alarme",
         sidebar_icon="mdi:shield-home",
         frontend_url_path="alarme",
-        config={"url": panel_url},
+        config={"url": "/alarme_personnalisee_panel/panel.html"},
         require_admin=False,
     )
     
@@ -73,6 +75,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         async_reset_trigger_count,
         schema=SERVICE_RESET_TRIGGER_COUNT_SCHEMA,
     )
+    
+    _LOGGER.info("Alarme Personnalisée setup completed successfully")
     
     return True
 

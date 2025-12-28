@@ -43,7 +43,7 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self._config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -52,7 +52,7 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        options = self.config_entry.options
+        options = self._config_entry.options
         data_schema = vol.Schema(
             {
                 vol.Optional("code", default=options.get("code", "")): str,
