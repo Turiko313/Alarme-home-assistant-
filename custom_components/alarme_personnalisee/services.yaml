@@ -1,10 +1,10 @@
 reset_trigger_count:
-  name: Réinitialiser le compteur de déclenchements
-  description: Réinitialise le compteur de déclenchements de l'alarme à zéro.
+  name: Reinitialiser le compteur de declenchements
+  description: Reinitialise le compteur de declenchements de l'alarme a zero.
   fields:
     entity_id:
-      name: Entité
-      description: L'ID de l'entité d'alarme à réinitialiser.
+      name: Entite
+      description: L'ID de l'entite d'alarme a reinitialiser.
       required: true
       example: "alarm_control_panel.alarme"
       selector:
