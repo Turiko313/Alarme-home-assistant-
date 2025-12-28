@@ -6,6 +6,7 @@
   "issue_tracker": "https://github.com/user/repo/issues",
   "codeowners": [],
   "config_flow": true,
+  "integration_type": "device",
   "iot_class": "calculated",
   "requirements": [],
   "dependencies": []
