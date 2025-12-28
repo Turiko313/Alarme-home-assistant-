@@ -10,5 +10,5 @@
   "iot_class": "calculated",
   "homeassistant": "2022.11.0",
   "requirements": [],
-  "dependencies": []
+  "dependencies": ["frontend"]
 }
