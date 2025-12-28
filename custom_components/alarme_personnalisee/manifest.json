@@ -8,6 +8,7 @@
   "config_flow": true,
   "integration_type": "hub",
   "iot_class": "calculated",
+  "homeassistant": "2022.11.0",
   "requirements": [],
   "dependencies": []
 }

@@ -32,12 +32,9 @@ class AlarmePersonnaliseeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
-        # Allow only one instance of the integration.
         if self._async_current_entries():
             return self.async_abort(reason="already_configured")
 
-        # No user input needed for initial setup, create the entry immediately.
-        # All configuration will be done in the options flow.
         return self.async_create_entry(title="Alarme Personnalisée", data={})
 
 
@@ -53,13 +50,10 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            # user_input contains the new options. We update the config entry.
             return self.async_create_entry(title="", data=user_input)
 
-        # The form is pre-filled with values from the config entry options.
         options = self.config_entry.options
-
-        schema = vol.Schema(
+        data_schema = vol.Schema(
             {
                 vol.Optional("code", default=options.get("code", "")): str,
                 vol.Optional(
@@ -74,11 +68,13 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                 ): str,
                 vol.Optional(
                     "arming_time", default=options.get("arming_time", 30)
-                ): int,
-                vol.Optional("delay_time", default=options.get("delay_time", 30)): int,
+                ): vol.All(vol.Coerce(int), vol.Range(min=0)),
+                vol.Optional(
+                    "delay_time", default=options.get("delay_time", 30)
+                ): vol.All(vol.Coerce(int), vol.Range(min=0)),
                 vol.Optional(
                     "trigger_time", default=options.get("trigger_time", 180)
-                ): int,
+                ): vol.All(vol.Coerce(int), vol.Range(min=0)),
                 vol.Optional(
                     "rearm_after_trigger",
                     default=options.get("rearm_after_trigger", False),
@@ -100,4 +96,5 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                 ),
             }
         )
-        return self.async_show_form(step_id="init", data_schema=schema)
+
+        return self.async_show_form(step_id="init", data_schema=data_schema)
