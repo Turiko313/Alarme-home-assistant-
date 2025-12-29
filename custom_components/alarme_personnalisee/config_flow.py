@@ -81,7 +81,7 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                 ): bool,
                 vol.Optional(
                     "enable_toggle_behavior",
-                    default=options.get("enable_toggle_behavior", True),
+                    default=options.get("enable_toggle_behavior", False),  # CHANGED: False par defaut
                 ): bool,
                 vol.Optional(
                     "away_sensors", default=options.get("away_sensors", [])

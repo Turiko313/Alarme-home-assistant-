@@ -69,7 +69,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._delay_time = max(0, options.get("delay_time", 30))
         self._trigger_time = max(0, options.get("trigger_time", 180))
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
-        self._enable_toggle_behavior = options.get("enable_toggle_behavior", True)
+        self._enable_toggle_behavior = options.get("enable_toggle_behavior", False)  # CHANGED: False par defaut
 
         self._away_sensors = options.get("away_sensors", [])
         self._home_sensors = options.get("home_sensors", [])

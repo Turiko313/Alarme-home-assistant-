@@ -5,6 +5,19 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.3.4] - 2025-12-28
+
+### Modifié
+- **? BREAKING CHANGE** : Le comportement toggle est maintenant **DÉSACTIVÉ PAR DÉFAUT**
+  - Comportement idempotent par défaut : Parfait pour les automatisations
+  - Armer un mode déjà actif n'a aucun effet (au lieu de désarmer)
+  - Pour réactiver le toggle : Cochez l'option dans la configuration
+
+### Raison du changement
+- La plupart des utilisateurs utilisent des automatisations
+- Le comportement toggle peut causer des désarmements accidentels
+- Plus sûr et plus prévisible pour un usage quotidien
+
 ## [1.3.3] - 2025-12-28
 
 ### Ajouté
