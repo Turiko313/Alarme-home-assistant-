@@ -16,7 +16,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_BADGES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ async def async_setup_entry(
     hass.data[DOMAIN][entry.entry_id] = entity
 
 class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
-    """Representation of an Alarme PersonnalisÃ©e."""
+    """Representation of an Alarme Personnalisée."""
 
     _attr_has_entity_name = True
 
@@ -53,6 +53,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
         self._update_options()
         self._unsub_listener = None
+        self._unsub_badge_listener = None
         self._unsub_options_update_listener = entry.add_update_listener(
             self._options_update_listener
         )
@@ -69,7 +70,10 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._delay_time = max(0, options.get("delay_time", 30))
         self._trigger_time = max(0, options.get("trigger_time", 180))
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
-        self._enable_toggle_behavior = options.get("enable_toggle_behavior", False)  # CHANGED: False par defaut
+        
+        # Badges configuration
+        self._badges = options.get(CONF_BADGES, [])
+        self._badge_entities = [badge["badge_entity"] for badge in self._badges]
 
         self._away_sensors = options.get("away_sensors", [])
         self._home_sensors = options.get("home_sensors", [])
@@ -83,9 +87,20 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._update_options()
         if self._unsub_listener:
             self._unsub_listener()
+        if self._unsub_badge_listener:
+            self._unsub_badge_listener()
+        
+        # Track sensors
         self._unsub_listener = async_track_state_change_event(
             self.hass, self._all_sensors, self._sensor_state_changed
         )
+        
+        # Track badges
+        if self._badge_entities:
+            self._unsub_badge_listener = async_track_state_change_event(
+                self.hass, self._badge_entities, self._badge_state_changed
+            )
+        
         self.async_write_ha_state()
 
     @property
@@ -120,7 +135,6 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             "supported_features_list": [
                 feature.name
                 for feature in AlarmControlPanelEntityFeature
-                # Skip the zero-value placeholder feature.
                 if feature.value != 0 and features & feature
             ],
             "triggered_count": self._triggered_count,
@@ -141,14 +155,24 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             "vacation": self._vacation_sensors,
         }
         
+        attrs["configured_badges"] = len(self._badges)
+        
         return attrs
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
+        
+        # Track sensors
         self._unsub_listener = async_track_state_change_event(
             self.hass, self._all_sensors, self._sensor_state_changed
         )
+        
+        # Track badges
+        if self._badge_entities:
+            self._unsub_badge_listener = async_track_state_change_event(
+                self.hass, self._badge_entities, self._badge_state_changed
+            )
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
@@ -156,13 +180,72 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._unsub_options_update_listener()
         if self._unsub_listener:
             self._unsub_listener()
+        if self._unsub_badge_listener:
+            self._unsub_badge_listener()
         self._cancel_timer()
 
     def _cancel_timer(self):
         """Cancel the timer."""
         if self._timer_handle:
-            self._timer_handle()  # This is a callable, not an object with a cancel method.
+            self._timer_handle()
             self._timer_handle = None
+
+    @callback
+    def _badge_state_changed(self, event: Event) -> None:
+        """Handle badge state changes."""
+        new_state = event.data.get("new_state")
+        old_state = event.data.get("old_state")
+        
+        if new_state is None:
+            return
+
+        entity_id = event.data.get("entity_id")
+        if not entity_id:
+            return
+
+        # Check if alarm is armed or triggered
+        if self._state not in [
+            AlarmControlPanelState.ARMED_AWAY,
+            AlarmControlPanelState.ARMED_HOME,
+            AlarmControlPanelState.ARMED_VACATION,
+            AlarmControlPanelState.PENDING,
+            AlarmControlPanelState.TRIGGERED,
+        ]:
+            return
+
+        # Find badge name
+        badge_name = None
+        for badge in self._badges:
+            if badge["badge_entity"] == entity_id:
+                badge_name = badge["badge_name"]
+                break
+
+        # Detect badge activation (state change from off to on, or value change)
+        badge_activated = False
+        if old_state is None or new_state.state != old_state.state:
+            # Binary sensor or sensor with value change
+            if new_state.state in ["on", "unlocked", "open"]:
+                badge_activated = True
+            # For numeric sensors, any change could be a badge scan
+            elif new_state.state not in ["off", "unknown", "unavailable"]:
+                badge_activated = True
+
+        if badge_activated:
+            _LOGGER.info("Badge %s (%s) used to disarm alarm", badge_name or entity_id, entity_id)
+            
+            # Emit event
+            self.hass.bus.async_fire(
+                f"{DOMAIN}.badge_disarm",
+                {
+                    "entity_id": self.entity_id,
+                    "badge_name": badge_name or "Unknown",
+                    "badge_entity": entity_id,
+                    "timestamp": dt_util.utcnow().isoformat(),
+                },
+            )
+            
+            # Disarm the alarm
+            self.hass.async_create_task(self._perform_disarm(validation=(True, False)))
 
     @callback
     def _sensor_state_changed(self, event: Event) -> None:
@@ -324,7 +407,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self.async_write_ha_state()
 
     async def _arm(self, state: AlarmControlPanelState, code: str | None = None):
-        """Arm the alarm to the specified state.
+        """Arm the alarm to the specified state - IDEMPOTENT.
         
         Args:
             state: The target armed state (ARMED_HOME, ARMED_AWAY, or ARMED_VACATION)
@@ -334,22 +417,13 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             None. State changes are reflected in self._state and logged.
             
         State validations:
-            - Prevents arming if already in the requested state (unless toggle disabled)
+            - Ignores if already in the requested state (idempotent)
             - Prevents arming while in ARMING, PENDING, or TRIGGERED states
             - Validates code if required
         """
-        # Check if already armed in the requested state
+        # Check if already armed in the requested state - IDEMPOTENT
         if self._state == state:
-            if self._enable_toggle_behavior:
-                # Comportement toggle: desarmer si deja arme
-                _LOGGER.info("Alarm is already armed in %s mode. Toggling to disarm.", state)
-                is_valid, is_emergency = self._validate_disarm_code(code)
-                if not is_valid:
-                    return
-                await self._perform_disarm(code, (is_valid, is_emergency))
-            else:
-                # Pas de toggle: ignorer la commande (idempotent)
-                _LOGGER.info("Alarm is already armed in %s mode. Ignoring duplicate arm request.", state)
+            _LOGGER.info("Alarm is already armed in %s mode. Ignoring duplicate arm request.", state)
             return
 
         # Prevent arming while in ARMING state

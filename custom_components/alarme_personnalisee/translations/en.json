@@ -10,8 +10,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Alarm Options",
-        "description": "Configure your alarm settings",
+        "title": "Configuration Menu",
+        "menu_options": {
+          "general": "General Settings",
+          "sensors": "Sensors",
+          "badges": "RFID/NFC Badges"
+        }
+      },
+      "general": {
+        "title": "General Settings",
+        "description": "Alarm configuration",
         "data": {
           "code": "PIN Code (optional)",
           "require_arm_code": "Require code to arm",
@@ -20,11 +28,38 @@
           "arming_time": "Arming delay (seconds)",
           "delay_time": "Entry delay (seconds)",
           "trigger_time": "Trigger duration (seconds)",
-          "rearm_after_trigger": "Automatically rearm after trigger",
-          "enable_toggle_behavior": "Enable toggle behavior (click active mode to disarm)",
+          "rearm_after_trigger": "Automatically rearm after trigger"
+        }
+      },
+      "sensors": {
+        "title": "Sensor Configuration",
+        "description": "Select sensors for each mode",
+        "data": {
           "away_sensors": "Away mode sensors",
           "home_sensors": "Home mode sensors",
           "vacation_sensors": "Vacation mode sensors"
+        }
+      },
+      "badges": {
+        "title": "Badge Management",
+        "description": "{badges_list}",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "add_badge": {
+        "title": "Add Badge",
+        "description": "Configure a new RFID/NFC badge",
+        "data": {
+          "badge_name": "Badge Name",
+          "badge_entity": "Reader Entity"
+        }
+      },
+      "remove_badge": {
+        "title": "Remove Badge",
+        "description": "Select the badge to remove",
+        "data": {
+          "badge_to_remove": "Badge to remove"
         }
       }
     }

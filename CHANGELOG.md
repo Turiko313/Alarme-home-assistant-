@@ -5,6 +5,32 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.4.0] - 2025-12-28
+
+### Ajouté
+- **?? Système de badges RFID/NFC** : Désarmement automatique via badges
+  - Configuration de badges avec noms personnalisés
+  - Support de multiples lecteurs (sensors ou binary_sensors)
+  - Événement `alarme_personnalisee.badge_disarm` émis à chaque utilisation
+  - Logs détaillés de qui a désarmé et quand
+  - Gestion complète via interface UI (ajout/suppression)
+
+### Modifié
+- **Configuration restructurée en menu** :
+  - Menu principal avec 3 sections : Général, Capteurs, Badges
+  - Interface plus claire et organisée
+  - Facilite l'ajout de badges un par un
+
+### Supprimé
+- **Option "Comportement toggle"** : Supprimée pour simplifier
+  - Le comportement est maintenant **toujours idempotent**
+  - Armer un mode déjà actif n'a aucun effet
+  - Plus de confusion possible
+
+### Sécurité
+- Les badges désarment l'alarme même en état PENDING ou TRIGGERED
+- Événements dédiés pour tracer l'utilisation des badges
+
 ## [1.3.4] - 2025-12-28
 
 ### Modifié

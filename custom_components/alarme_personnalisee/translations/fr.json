@@ -2,32 +2,64 @@
   "config": {
     "step": {
       "user": {
-        "title": "Configuration de l'Alarme Personnalisée",
-        "description": "Sélectionnez les capteurs à surveiller dans chaque mode."
+        "title": "Alarme Personnalisee",
+        "description": "Configurer votre alarme personnalisee"
       }
-    },
-    "abort": {
-      "already_configured": "Ce panneau d'alarme est déjà configuré."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Options de l'Alarme Personnalisée",
-        "description": "Configurez ici les délais, le code PIN et les capteurs de l'alarme.",
+        "title": "Menu de configuration",
+        "menu_options": {
+          "general": "Parametres generaux",
+          "sensors": "Capteurs",
+          "badges": "Badges RFID/NFC"
+        }
+      },
+      "general": {
+        "title": "Parametres generaux",
+        "description": "Configuration de l'alarme",
         "data": {
           "code": "Code PIN (optionnel)",
           "require_arm_code": "Exiger un code pour armer",
-          "require_disarm_code": "Exiger un code pour désarmer",
+          "require_disarm_code": "Exiger un code pour desarmer",
           "emergency_code": "Code d'urgence (optionnel)",
-          "arming_time": "Délai d'armement (secondes)",
-          "delay_time": "Délai d'entrée (secondes)",
-          "trigger_time": "Durée de déclenchement (secondes)",
-          "rearm_after_trigger": "Réarmer automatiquement après déclenchement",
-          "enable_toggle_behavior": "Activer comportement toggle (cliquer sur mode actif pour désarmer)",
+          "arming_time": "Delai d'armement (secondes)",
+          "delay_time": "Delai d'entree (secondes)",
+          "trigger_time": "Duree de declenchement (secondes)",
+          "rearm_after_trigger": "Rearmer automatiquement apres declenchement"
+        }
+      },
+      "sensors": {
+        "title": "Configuration des capteurs",
+        "description": "Selectionnez les capteurs pour chaque mode",
+        "data": {
           "away_sensors": "Capteurs en mode Absent",
           "home_sensors": "Capteurs en mode Domicile",
           "vacation_sensors": "Capteurs en mode Vacances"
+        }
+      },
+      "badges": {
+        "title": "Gestion des badges",
+        "description": "{badges_list}",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "add_badge": {
+        "title": "Ajouter un badge",
+        "description": "Configurez un nouveau badge RFID/NFC",
+        "data": {
+          "badge_name": "Nom du badge",
+          "badge_entity": "Entite du lecteur"
+        }
+      },
+      "remove_badge": {
+        "title": "Supprimer un badge",
+        "description": "Selectionnez le badge a supprimer",
+        "data": {
+          "badge_to_remove": "Badge a supprimer"
         }
       }
     }
@@ -35,15 +67,15 @@
   "entity": {
     "button": {
       "reset_trigger_count": {
-        "name": "Réinitialiser le compteur"
+        "name": "Reinitialiser le compteur"
       }
     },
     "sensor": {
       "trigger_count": {
-        "name": "Nombre de déclenchements"
+        "name": "Nombre de declenchements"
       },
       "last_triggered_by": {
-        "name": "Dernier capteur déclencheur"
+        "name": "Dernier capteur declencheur"
       },
       "last_changed_at": {
         "name": "Dernier changement"
@@ -51,18 +83,18 @@
     },
     "switch": {
       "rearm_after_trigger": {
-        "name": "Réarmer après déclenchement"
+        "name": "Rearmer apres declenchement"
       }
     },
     "number": {
       "arming_time": {
-        "name": "Délai d'armement"
+        "name": "Delai d'armement"
       },
       "delay_time": {
-        "name": "Délai d'entrée"
+        "name": "Delai d'entree"
       },
       "trigger_time": {
-        "name": "Durée de déclenchement"
+        "name": "Duree de declenchement"
       }
     }
   }
