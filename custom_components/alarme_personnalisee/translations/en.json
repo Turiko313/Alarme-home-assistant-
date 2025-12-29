@@ -21,6 +21,7 @@
           "delay_time": "Entry delay (seconds)",
           "trigger_time": "Trigger duration (seconds)",
           "rearm_after_trigger": "Automatically rearm after trigger",
+          "enable_toggle_behavior": "Enable toggle behavior (click active mode to disarm)",
           "away_sensors": "Away mode sensors",
           "home_sensors": "Home mode sensors",
           "vacation_sensors": "Vacation mode sensors"

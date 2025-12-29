@@ -5,6 +5,21 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.3.3] - 2025-12-28
+
+### Ajouté
+- **Option "Comportement toggle"** : Nouvelle option pour désactiver le comportement toggle
+  - Par défaut : **Activé** (comportement actuel)
+  - Si **désactivé** : Les automatisations peuvent armer plusieurs fois sans désarmer (idempotent)
+  - Utile pour éviter que les automatisations désarment l'alarme si elle est déjà armée
+
+### Modifié
+- Le comportement toggle est maintenant **optionnel** et configurable
+- Quand toggle désactivé : Armer un mode déjà actif n'a aucun effet (au lieu de désarmer)
+
+### Corrigé
+- **?? BUG AUTOMATISATIONS** : Les automatisations qui arment l'alarme ne la désarment plus si elle est déjà armée (quand toggle désactivé)
+
 ## [1.3.2] - 2025-12-28
 
 ### Corrigé

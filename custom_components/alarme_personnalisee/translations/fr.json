@@ -24,6 +24,7 @@
           "delay_time": "Délai d'entrée (secondes)",
           "trigger_time": "Durée de déclenchement (secondes)",
           "rearm_after_trigger": "Réarmer automatiquement après déclenchement",
+          "enable_toggle_behavior": "Activer comportement toggle (cliquer sur mode actif pour désarmer)",
           "away_sensors": "Capteurs en mode Absent",
           "home_sensors": "Capteurs en mode Domicile",
           "vacation_sensors": "Capteurs en mode Vacances"

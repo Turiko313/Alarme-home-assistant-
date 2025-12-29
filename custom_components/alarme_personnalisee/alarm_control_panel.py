@@ -69,6 +69,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         self._delay_time = max(0, options.get("delay_time", 30))
         self._trigger_time = max(0, options.get("trigger_time", 180))
         self._rearm_after_trigger = options.get("rearm_after_trigger", False)
+        self._enable_toggle_behavior = options.get("enable_toggle_behavior", True)
 
         self._away_sensors = options.get("away_sensors", [])
         self._home_sensors = options.get("home_sensors", [])
@@ -175,7 +176,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             _LOGGER.warning("Sensor state change event without entity_id")
             return
 
-        # Surveiller les capteurs pendant l'armement ET quand armé
+        # Surveiller les capteurs pendant l'armement ET quand arme
         if self._state not in [
             AlarmControlPanelState.ARMING,
             AlarmControlPanelState.ARMED_AWAY,
@@ -184,9 +185,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         ]:
             return
 
-        # Déterminer quels capteurs surveiller selon le mode cible
+        # Determiner quels capteurs surveiller selon le mode cible
         if self._state == AlarmControlPanelState.ARMING:
-            # En cours d'armement, vérifier selon le mode cible
+            # En cours d'armement, verifier selon le mode cible
             if self._last_armed_state == AlarmControlPanelState.ARMED_AWAY:
                 is_relevant_sensor = entity_id in self._away_sensors
             elif self._last_armed_state == AlarmControlPanelState.ARMED_HOME:
@@ -196,7 +197,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             else:
                 return
         else:
-            # Déjà armé, vérifier selon l'état actuel
+            # Deja arme, verifier selon l'etat actuel
             is_relevant_sensor = (
                 (self._state == AlarmControlPanelState.ARMED_AWAY and entity_id in self._away_sensors)
                 or (self._state == AlarmControlPanelState.ARMED_HOME and entity_id in self._home_sensors)
@@ -206,7 +207,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
         if not is_relevant_sensor:
             return
 
-        # Si on est en cours d'armement et qu'un capteur se déclenche, annuler l'armement
+        # Si on est en cours d'armement et qu'un capteur se declenche, annuler l'armement
         if self._state == AlarmControlPanelState.ARMING:
             _LOGGER.warning("Arming cancelled: sensor %s triggered during arming delay", entity_id)
             self._cancel_timer()
@@ -214,7 +215,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             self._last_armed_state = None
             self.async_write_ha_state()
             
-            # Émettre un événement personnalisé
+            # Emettre un evenement personnalise
             self.hass.bus.async_fire(
                 f"{DOMAIN}.arming_cancelled",
                 {
@@ -333,17 +334,22 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
             None. State changes are reflected in self._state and logged.
             
         State validations:
-            - Prevents arming if already in the requested state
+            - Prevents arming if already in the requested state (unless toggle disabled)
             - Prevents arming while in ARMING, PENDING, or TRIGGERED states
             - Validates code if required
         """
         # Check if already armed in the requested state
         if self._state == state:
-            _LOGGER.info("Alarm is already armed in %s mode. Toggling to disarm.", state)
-            is_valid, is_emergency = self._validate_disarm_code(code)
-            if not is_valid:
-                return
-            await self._perform_disarm(code, (is_valid, is_emergency))
+            if self._enable_toggle_behavior:
+                # Comportement toggle: desarmer si deja arme
+                _LOGGER.info("Alarm is already armed in %s mode. Toggling to disarm.", state)
+                is_valid, is_emergency = self._validate_disarm_code(code)
+                if not is_valid:
+                    return
+                await self._perform_disarm(code, (is_valid, is_emergency))
+            else:
+                # Pas de toggle: ignorer la commande (idempotent)
+                _LOGGER.info("Alarm is already armed in %s mode. Ignoring duplicate arm request.", state)
             return
 
         # Prevent arming while in ARMING state

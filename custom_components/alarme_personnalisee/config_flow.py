@@ -80,6 +80,10 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                     default=options.get("rearm_after_trigger", False),
                 ): bool,
                 vol.Optional(
+                    "enable_toggle_behavior",
+                    default=options.get("enable_toggle_behavior", True),
+                ): bool,
+                vol.Optional(
                     "away_sensors", default=options.get("away_sensors", [])
                 ): selector.EntitySelector(
                     selector.EntitySelectorConfig(domain="binary_sensor", multiple=True)
