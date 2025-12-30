@@ -34,8 +34,7 @@ async def async_setup_entry(
     hass.data[DOMAIN][entry.entry_id] = entity
 
 class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
-    """Representation of an Alarme Personnalisée."""
-
+    """Representation of an Alarme Personnalisee."""
     _attr_has_entity_name = True
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
