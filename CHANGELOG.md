@@ -5,6 +5,11 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichie
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.4.1] - 2025-12-29
+### Corrigé et Optimisé
+- Nettoyage des timers (prévention des fuites mémoire) dans `alarm_control_panel.py`.
+- Corrections mineures pour robustesse.
+
 ## [1.4.0] - 2025-12-28
 
 ### Ajouté

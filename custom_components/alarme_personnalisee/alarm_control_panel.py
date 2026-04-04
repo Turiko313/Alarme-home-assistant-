@@ -319,6 +319,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     @callback
     def _trigger_alarm(self, now: datetime):
         """Trigger the alarm."""
+        self._timer_handle = None
         _LOGGER.warning("Alarm triggered!")
         self._state = AlarmControlPanelState.TRIGGERED
         self._triggered_count += 1
@@ -339,6 +340,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
     @callback
     def _post_trigger_action(self, now: datetime):
         """Action after trigger duration."""
+        self._timer_handle = None
         if self._rearm_after_trigger and self._last_armed_state:
             _LOGGER.info("Rearming alarm to %s", self._last_armed_state)
             self._state = self._last_armed_state
@@ -457,6 +459,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity):
 
     @callback
     def _finish_arming(self, now: datetime):
+        self._timer_handle = None
         _LOGGER.info("Alarm armed to %s", self._last_armed_state)
         self._state = self._last_armed_state
         self._last_changed_at = dt_util.utcnow()
