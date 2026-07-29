@@ -34,11 +34,12 @@ L'identifiant de l'entité dépend du nom choisi et peut avoir été modifié pa
 - Consultez **Paramètres > Système > Réparations** : l'intégration y signale les entités absentes, inconnues ou indisponibles.
 - Après une modification des options, confirmez que l'intégration ne signale aucune erreur dans les journaux.
 
-## Un badge ne désarme pas l'alarme
+## Un tag RFID ne désarme pas l'alarme
 
-- Pour un lecteur de type `sensor`, la valeur configurée doit correspondre exactement à son état.
-- Pour un `binary_sensor` dédié à un badge, utilisez la valeur `on`.
-- Un badge n'est pris en compte que pendant l'armement, lorsque l'alarme est armée, en attente ou déclenchée.
+- Vérifiez que le lecteur crée bien un événement `tag_scanned` dans **Outils de développement > Événements**.
+- Vérifiez que le `tag_id` reçu est exactement celui autorisé dans **Configurer > Tags RFID**.
+- Le lecteur RFID lui-même n'a pas besoin d'être sélectionné comme entité.
+- Un tag n'est pris en compte que pendant l'armement, lorsque l'alarme est armée, en attente ou déclenchée.
 
 ## Réinitialiser le compteur
 

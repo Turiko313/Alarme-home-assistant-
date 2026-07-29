@@ -3,6 +3,7 @@
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.alarme_personnalisee.const import (
@@ -22,6 +23,8 @@ from custom_components.alarme_personnalisee.const import (
     CONF_REQUIRE_ARM_CODE,
     CONF_REQUIRE_DISARM_CODE,
     CONF_STARTUP_DELAY,
+    CONF_TAG_ID,
+    CONF_TAG_NAME,
     CONF_TRIGGER_TIME,
     CONF_VACATION_SENSORS,
     DOMAIN,
@@ -31,6 +34,20 @@ FRONT_DOOR = "binary_sensor.front_door"
 BACK_DOOR = "binary_sensor.back_door"
 BADGE_READER = "sensor.badge_reader"
 SECOND_BADGE_READER = "sensor.second_badge_reader"
+TAG_FRANCK_HOME = "11111111-1111-1111-1111-111111111111"
+TAG_FRANCK_CAR = "22222222-2222-2222-2222-222222222222"
+TAG_FRANCK_KEYS = "33333333-3333-3333-3333-333333333333"
+TAG_FRANCK_UPDATED = "44444444-4444-4444-4444-444444444444"
+
+
+def _register_tag(hass: HomeAssistant, tag_id: str, name: str) -> None:
+    """Register one native Home Assistant tag for selector tests."""
+    er.async_get(hass).async_get_or_create(
+        "tag",
+        "tag",
+        tag_id,
+        original_name=name,
+    )
 
 
 def _entry(hass: HomeAssistant, options: dict | None = None) -> MockConfigEntry:
@@ -127,7 +144,11 @@ async def test_sensor_options_flow(hass: HomeAssistant) -> None:
 async def test_badge_options_group_add_edit_remove_and_save(
     hass: HomeAssistant,
 ) -> None:
-    """Badges are grouped by name and can be added, edited, and removed."""
+    """Native tags are readable and can be added, edited, and removed."""
+    _register_tag(hass, TAG_FRANCK_HOME, "Franck appartement")
+    _register_tag(hass, TAG_FRANCK_CAR, "Franck voiture")
+    _register_tag(hass, TAG_FRANCK_KEYS, "Franck clés")
+    _register_tag(hass, TAG_FRANCK_UPDATED, "Franck bureau")
     entry = _entry(hass)
     result = await _open_options_step(hass, entry, "badges")
     assert result["type"] is FlowResultType.FORM
@@ -140,14 +161,15 @@ async def test_badge_options_group_add_edit_remove_and_save(
     assert result["step_id"] == "add_badge"
 
     badge = {
-        CONF_BADGE_NAME: "Alice",
-        CONF_BADGE_ENTITY: BADGE_READER,
-        CONF_BADGE_VALUE: "04-A1-B2",
+        CONF_BADGE_NAME: "Franck",
+        CONF_TAG_ID: TAG_FRANCK_HOME,
     }
     result = await hass.config_entries.options.async_configure(result["flow_id"], badge)
     assert result["step_id"] == "badges"
-    assert "Alice" in result["description_placeholders"]["badges_list"]
-    assert "(1)" in result["description_placeholders"]["badges_list"]
+    badge_list = result["description_placeholders"]["badges_list"]
+    assert "**Franck** (1 tag)" in badge_list
+    assert "Franck appartement" in badge_list
+    assert "11111111…1111" in badge_list
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"action": "add"}
@@ -160,13 +182,12 @@ async def test_badge_options_group_add_edit_remove_and_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            CONF_BADGE_NAME: "Alice",
-            CONF_BADGE_ENTITY: SECOND_BADGE_READER,
-            CONF_BADGE_VALUE: "04-C3-D4",
+            CONF_BADGE_NAME: "Franck",
+            CONF_TAG_ID: TAG_FRANCK_CAR,
         },
     )
     assert result["step_id"] == "badges"
-    assert "**Alice** (2)" in result["description_placeholders"]["badges_list"]
+    assert "**Franck** (2 tags)" in result["description_placeholders"]["badges_list"]
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"action": "add_to_name"}
@@ -175,13 +196,12 @@ async def test_badge_options_group_add_edit_remove_and_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            "badge_owner": "Alice",
-            CONF_BADGE_ENTITY: "binary_sensor.alice_keyring",
-            CONF_BADGE_VALUE: "on",
+            "badge_owner": "Franck",
+            CONF_TAG_ID: TAG_FRANCK_KEYS,
         },
     )
     assert result["step_id"] == "badges"
-    assert "**Alice** (3)" in result["description_placeholders"]["badges_list"]
+    assert "**Franck** (3 tags)" in result["description_placeholders"]["badges_list"]
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"action": "edit"}
@@ -195,9 +215,8 @@ async def test_badge_options_group_add_edit_remove_and_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            CONF_BADGE_NAME: "Alice",
-            CONF_BADGE_ENTITY: BADGE_READER,
-            CONF_BADGE_VALUE: "04-A1-B2",
+            CONF_BADGE_NAME: "Franck",
+            CONF_TAG_ID: TAG_FRANCK_HOME,
         },
     )
     assert result["errors"] == {"base": "badge_already_configured"}
@@ -205,13 +224,12 @@ async def test_badge_options_group_add_edit_remove_and_save(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         {
-            CONF_BADGE_NAME: "Alice",
-            CONF_BADGE_ENTITY: SECOND_BADGE_READER,
-            CONF_BADGE_VALUE: "04-UPDATED",
+            CONF_BADGE_NAME: "Franck",
+            CONF_TAG_ID: TAG_FRANCK_UPDATED,
         },
     )
     assert result["step_id"] == "badges"
-    assert "04-UPDATED" in result["description_placeholders"]["badges_list"]
+    assert "Franck bureau" in result["description_placeholders"]["badges_list"]
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"action": "remove"}
@@ -221,8 +239,8 @@ async def test_badge_options_group_add_edit_remove_and_save(
         result["flow_id"], {"badge_to_remove": "0"}
     )
     assert result["step_id"] == "badges"
-    assert "**Alice** (2)" in result["description_placeholders"]["badges_list"]
-    assert "04-A1-B2" not in result["description_placeholders"]["badges_list"]
+    assert "**Franck** (2 tags)" in result["description_placeholders"]["badges_list"]
+    assert "Franck appartement" not in result["description_placeholders"]["badges_list"]
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"action": "done"}
@@ -230,14 +248,14 @@ async def test_badge_options_group_add_edit_remove_and_save(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_BADGES] == [
         {
-            CONF_BADGE_NAME: "Alice",
-            CONF_BADGE_ENTITY: SECOND_BADGE_READER,
-            CONF_BADGE_VALUE: "04-UPDATED",
+            CONF_BADGE_NAME: "Franck",
+            CONF_TAG_ID: TAG_FRANCK_UPDATED,
+            CONF_TAG_NAME: "Franck bureau",
         },
         {
-            CONF_BADGE_NAME: "Alice",
-            CONF_BADGE_ENTITY: "binary_sensor.alice_keyring",
-            CONF_BADGE_VALUE: "on",
+            CONF_BADGE_NAME: "Franck",
+            CONF_TAG_ID: TAG_FRANCK_KEYS,
+            CONF_TAG_NAME: "Franck clés",
         },
     ]
 
@@ -279,6 +297,6 @@ async def test_existing_badges_are_grouped_without_migration(
     result = await _open_options_step(hass, entry, "badges")
 
     badge_list = result["description_placeholders"]["badges_list"]
-    assert "**Alice** (2)" in badge_list
+    assert "**Alice** (2 tags)" in badge_list
     assert BADGE_READER in badge_list
     assert SECOND_BADGE_READER in badge_list

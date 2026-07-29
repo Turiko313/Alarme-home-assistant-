@@ -29,6 +29,9 @@ ATTR_MONITORED_SENSORS = "monitored_sensors"
 ATTR_BADGE_NAME = "badge_name"
 ATTR_BADGE_ENTITY = "badge_entity"
 ATTR_BADGE_VALUE = "badge_value"
+ATTR_TAG_ID = "tag_id"
+ATTR_TAG_NAME = "tag_name"
+ATTR_TAG_DEVICE_ID = "tag_device_id"
 ATTR_BYPASSED_SENSORS = "bypassed_sensors"
 
 # Configuration keys
@@ -50,6 +53,8 @@ CONF_BADGES = "badges"
 CONF_BADGE_NAME = "badge_name"
 CONF_BADGE_ENTITY = "badge_entity"
 CONF_BADGE_VALUE = "badge_value"
+CONF_TAG_ID = "tag_id"
+CONF_TAG_NAME = "tag_name"
 
 # Services and dispatcher
 SERVICE_RESET_TRIGGER_COUNT = "reset_trigger_count"

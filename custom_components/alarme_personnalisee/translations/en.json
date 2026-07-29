@@ -17,7 +17,7 @@
         "menu_options": {
           "general": "General Settings",
           "sensors": "Sensors",
-          "badges": "RFID/NFC Badges"
+          "badges": "RFID/NFC Tags"
         }
       },
       "general": {
@@ -46,49 +46,48 @@
         }
       },
       "badges": {
-        "title": "Badge Management",
-        "description": "Authorized badges grouped by friendly name:\n\n{badges_list}",
+        "title": "RFID Tag Management",
+        "description": "Authorized Home Assistant tags grouped by person:\n\n{badges_list}",
         "data": {
           "action": "Action"
         }
       },
       "add_badge": {
-        "title": "Add a person or badge",
-        "description": "Enter a friendly name and the exact value emitted by the reader. The same friendly name can own several badges.",
+        "title": "Add an RFID tag",
+        "description": "Choose a tag already known by Home Assistant, or paste its tag_id. The RFID reader itself does not need to be configured.",
         "data": {
-          "badge_name": "Friendly name",
-          "badge_entity": "Reader entity",
-          "badge_value": "Expected reader value"
+          "badge_name": "Person or displayed name",
+          "tag_id": "Home Assistant tag"
         }
       },
       "add_badge_to_name": {
-        "title": "Add a badge to an existing name",
-        "description": "Choose the person, then enter their additional reader and badge value.",
+        "title": "Add an RFID tag to an existing person",
+        "description": "Choose the person and their additional Home Assistant tag.",
         "data": {
           "badge_owner": "Existing friendly name",
-          "badge_entity": "Reader entity",
-          "badge_value": "Expected reader value"
+          "tag_id": "Home Assistant tag"
         }
       },
       "edit_badge": {
-        "title": "Edit Badge",
-        "description": "Select a badge, then change its friendly name, reader, or expected value.",
+        "title": "Edit RFID tag",
+        "description": "Select a tag, then change its person or tag_id.",
         "data": {
-          "badge_to_edit": "Badge to edit",
-          "badge_name": "Friendly name",
+          "badge_to_edit": "Tag to edit",
+          "badge_name": "Person or displayed name",
+          "tag_id": "Home Assistant tag",
           "badge_entity": "Reader entity",
           "badge_value": "Expected reader value"
         }
       },
       "remove_badge": {
-        "title": "Remove Badge",
+        "title": "Remove RFID tag",
         "data": {
-          "badge_to_remove": "Badge to remove"
+          "badge_to_remove": "Tag to remove"
         }
       }
     },
     "error": {
-      "badge_already_configured": "This reader and badge value are already configured."
+      "badge_already_configured": "This tag is already configured."
     }
   },
   "entity": {

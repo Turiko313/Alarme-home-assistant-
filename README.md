@@ -51,35 +51,39 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
     *   **Temporisations :** Configurez les délais d'armement, d'entrée et de déclenchement.
     *   **Démarrage :** Configurez le délai de grâce et l'armement automatique en mode Présence.
     *   **Capteurs :** Sélectionnez les capteurs pour chaque mode d'alarme.
-    *   **Badges RFID/NFC :** Configurez des badges pour le désarmement automatique (optionnel).
+    *   **Tags RFID/NFC :** Autorisez les tags Home Assistant pouvant désarmer l'alarme (optionnel).
 
-## Configuration des badges RFID/NFC
+## Configuration des tags RFID/NFC
 
-L'intégration supporte le désarmement automatique via badges RFID/NFC. Cette fonctionnalité est particulièrement utile pour les membres de la famille qui n'ont pas besoin de se souvenir d'un code PIN.
+L'intégration écoute directement les événements natifs `tag_scanned` de Home Assistant. Le lecteur RFID n'est donc pas une entité à configurer dans l'alarme : seul le `tag_id` du badge doit être autorisé.
 
 ### Configuration
 
 1.  Allez dans **Paramètres** > **Appareils et services** > **Alarme Personnalisée** > **Configurer**.
-2.  Accédez à l'onglet **Badges**.
-3.  Les badges déjà configurés sont regroupés par **nom familier**, avec le nombre de badges et le détail de chaque lecteur/valeur.
+2.  Accédez à l'onglet **Tags RFID**.
+3.  Les tags déjà configurés sont regroupés par personne, avec leur nom Home Assistant et un identifiant raccourci.
 4.  Choisissez l'action souhaitée :
-    *   **Ajouter une personne ou un badge :** crée un nouveau nom familier ou ajoute librement une identification.
-    *   **Ajouter un badge à un nom existant :** associe un deuxième badge, porte-clés ou téléphone à la même personne.
-    *   **Modifier un badge :** permet de changer son nom familier, son lecteur ou sa valeur.
-    *   **Supprimer un badge :** retire uniquement l'identification sélectionnée.
-5.  Pour chaque badge :
-    *   **Nom familier :** Le nom de la personne (ex: "Papa", "Maman"). Plusieurs badges peuvent porter ce même nom.
-    *   **Lecteur NFC :** Sélectionnez le capteur ou capteur binaire qui détecte les badges.
-    *   **Valeur attendue :** Saisissez exactement la valeur renvoyée par le lecteur pour ce badge (ex: `AB:CD:EF:12:34:56`). Pour un capteur binaire dédié, utilisez `on`.
+    *   **Ajouter un tag RFID :** sélectionne un tag déjà connu de Home Assistant ou accepte un `tag_id` collé manuellement.
+    *   **Ajouter un tag à une personne :** associe un autre badge ou porte-clés à la même personne.
+    *   **Modifier un tag :** change la personne ou le tag associé.
+    *   **Supprimer un tag :** retire uniquement le tag sélectionné.
 
-Cette évolution reste compatible avec les configurations existantes : aucun badge n'est déplacé ou recréé.
+Par exemple, une automatisation Home Assistant utilisant :
+
+```yaml
+triggers:
+  - trigger: tag
+    tag_id: 11111111-1111-1111-1111-111111111111
+```
+
+correspond directement au même `tag_id` dans l'intégration. Les anciennes configurations basées sur une entité lecteur et une valeur restent reconnues en arrière-plan, mais les nouveaux ajouts utilisent uniquement les tags natifs.
 
 ## Comportement au démarrage
 
 Par défaut, l'intégration attend **30 secondes** après le démarrage complet de Home Assistant avant de contrôler la disponibilité des capteurs. Pendant cette période :
 
 - aucun avertissement Repairs n'est créé pour un capteur qui n'a pas encore restauré son état ;
-- les changements transitoires des capteurs et lecteurs de badge sont ignorés ;
+- les changements transitoires des capteurs sont ignorés ;
 - aucune ouverture de démarrage ne peut déclencher l'alarme par erreur.
 
 Après ce délai :
@@ -96,17 +100,14 @@ Ces deux réglages sont disponibles dans **Configurer > Paramètres généraux**
 
 ### Lecteurs compatibles
 
-L'intégration fonctionne avec n'importe quel `sensor` ou `binary_sensor` qui renvoie l'ID du badge. Exemples :
--   Lecteurs NFC connectés à Home Assistant
--   Tags NFC lus par l'application mobile Home Assistant
--   Lecteurs RFID intégrés (ESPHome, Tasmota, etc.)
+Tout lecteur qui crée un événement Home Assistant `tag_scanned` est compatible, notamment les lecteurs RFID/NFC ESPHome et les tags lus par l'application mobile Home Assistant.
 
 ### Fonctionnement
 
--   Lorsqu'un badge configuré est détecté, l'alarme se désarme automatiquement
+-   Lorsqu'un `tag_id` configuré est scanné, l'alarme se désarme automatiquement
 -   Fonctionne même si l'alarme est en état `pending` ou `triggered`
--   Un événement `alarme_personnalisee.badge_disarm` est émis à chaque utilisation pour tracer qui a désarmé l'alarme
--   Les logs indiquent quel badge a été utilisé et à quelle heure
+-   Un événement `alarme_personnalisee.badge_disarm` indique la personne, le tag et l'appareil qui a lu le tag
+-   Un tag inconnu est ignoré
 
 ## Entités créées
 
@@ -137,7 +138,7 @@ L'intégration fournit désormais sa propre carte moderne, sans dépendance à `
 
 Dans **Paramètres > Tableaux de bord > Ressources**, ajoutez :
 
-- URL : `/alarme_personnalisee/alarme-personnalisee-card.js?v=1.6.3`
+- URL : `/alarme_personnalisee/alarme-personnalisee-card.js?v=1.7.0`
 - Type : **Module JavaScript**
 
 Rechargez ensuite complètement le navigateur. Lors d'une future mise à jour, adaptez le numéro après `?v=` pour éviter de conserver une ancienne version en cache.
@@ -203,11 +204,12 @@ L'intégration émet les événements suivants :
 -   `alarme_personnalisee.urgence` - Déclenché lors d'un désarmement avec le code d'urgence
   - `entity_id`: ID de l'entité d'alarme
 
--   `alarme_personnalisee.badge_disarm` - Déclenché lors d'un désarmement par badge RFID/NFC
+-   `alarme_personnalisee.badge_disarm` - Déclenché lors d'un désarmement par tag RFID/NFC
   - `entity_id`: ID de l'entité d'alarme
-  - `badge_name`: Nom du badge utilisé
-  - `badge_entity`: Entité du lecteur utilisée
-  - `badge_value`: Valeur du badge reconnue
+  - `badge_name`: Personne associée au tag
+  - `tag_id`: Identifiant natif du tag Home Assistant
+  - `tag_name`: Nom lisible du tag
+  - `tag_device_id`: Appareil Home Assistant ayant lu le tag, si disponible
   - `timestamp`: Horodatage du désarmement
 
 -   `alarme_personnalisee.sensor_availability_changed` - Émis lorsque la disponibilité des zones ou lecteurs change
@@ -247,7 +249,9 @@ automation:
       - service: notify.mobile_app
         data:
           title: "🔓 Alarme désarmée"
-          message: "{{ trigger.event.data.badge_name }} a désarmé l'alarme"
+          message: >-
+            {{ trigger.event.data.badge_name }} a désarmé l'alarme
+            avec {{ trigger.event.data.tag_name }}
 
   - alias: "Alerte capteurs d'alarme indisponibles"
     trigger:

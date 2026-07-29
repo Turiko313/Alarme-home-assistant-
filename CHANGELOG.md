@@ -5,6 +5,24 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.7.0] - 2026-07-29
+
+### Ajouté
+
+- Prise en charge directe des événements natifs Home Assistant `tag_scanned`.
+- Sélection des tags RFID par leur nom Home Assistant et leur `tag_id`.
+- Événement de désarmement enrichi avec la personne, le nom du tag, son identifiant et l'appareil lecteur.
+
+### Modifié
+
+- L'écran de configuration affiche désormais les tags regroupés par personne, sans demander d'entité lecteur ni de valeur d'état.
+- Les identifiants longs sont raccourcis visuellement tout en restant stockés intégralement.
+
+### Compatibilité
+
+- Les anciennes configurations lecteur/valeur restent fonctionnelles, mais les nouveaux ajouts utilisent les tags Home Assistant natifs.
+- 27 tests automatisés réussissent avec plus de 95 % de couverture.
+
 ## [1.6.3] - 2026-07-29
 
 ### Ajouté

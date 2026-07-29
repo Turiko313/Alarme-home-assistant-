@@ -17,7 +17,7 @@
         "menu_options": {
           "general": "Paramètres généraux",
           "sensors": "Capteurs",
-          "badges": "Badges RFID/NFC"
+          "badges": "Tags RFID/NFC"
         }
       },
       "general": {
@@ -46,49 +46,48 @@
         }
       },
       "badges": {
-        "title": "Gestion des badges",
-        "description": "Badges autorisés regroupés par nom familier :\n\n{badges_list}",
+        "title": "Gestion des tags RFID",
+        "description": "Tags Home Assistant autorisés, regroupés par personne :\n\n{badges_list}",
         "data": {
           "action": "Action"
         }
       },
       "add_badge": {
-        "title": "Ajouter une personne ou un badge",
-        "description": "Saisissez un nom familier et la valeur exacte renvoyée par le lecteur. Un même nom peut posséder plusieurs badges.",
+        "title": "Ajouter un tag RFID",
+        "description": "Choisissez un tag déjà connu de Home Assistant, ou collez son tag_id. Le lecteur RFID lui-même n'a pas besoin d'être configuré.",
         "data": {
-          "badge_name": "Nom familier",
-          "badge_entity": "Entité du lecteur",
-          "badge_value": "Valeur attendue du lecteur"
+          "badge_name": "Personne ou nom affiché",
+          "tag_id": "Tag Home Assistant"
         }
       },
       "add_badge_to_name": {
-        "title": "Ajouter un badge à un nom existant",
-        "description": "Choisissez la personne, puis renseignez son lecteur et la valeur de son badge supplémentaire.",
+        "title": "Ajouter un tag RFID à une personne",
+        "description": "Choisissez la personne puis son tag Home Assistant supplémentaire.",
         "data": {
           "badge_owner": "Nom familier existant",
-          "badge_entity": "Entité du lecteur",
-          "badge_value": "Valeur attendue du lecteur"
+          "tag_id": "Tag Home Assistant"
         }
       },
       "edit_badge": {
-        "title": "Modifier un badge",
-        "description": "Sélectionnez un badge, puis modifiez son nom familier, son lecteur ou sa valeur attendue.",
+        "title": "Modifier un tag RFID",
+        "description": "Sélectionnez un tag, puis modifiez sa personne ou son tag_id.",
         "data": {
-          "badge_to_edit": "Badge à modifier",
-          "badge_name": "Nom familier",
+          "badge_to_edit": "Tag à modifier",
+          "badge_name": "Personne ou nom affiché",
+          "tag_id": "Tag Home Assistant",
           "badge_entity": "Entité du lecteur",
           "badge_value": "Valeur attendue du lecteur"
         }
       },
       "remove_badge": {
-        "title": "Supprimer un badge",
+        "title": "Supprimer un tag RFID",
         "data": {
-          "badge_to_remove": "Badge à supprimer"
+          "badge_to_remove": "Tag à supprimer"
         }
       }
     },
     "error": {
-      "badge_already_configured": "Ce lecteur et cette valeur de badge sont déjà configurés."
+      "badge_already_configured": "Ce tag est déjà configuré."
     }
   },
   "entity": {

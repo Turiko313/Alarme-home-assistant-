@@ -15,6 +15,13 @@ from homeassistant.components.alarm_control_panel.const import AlarmControlPanel
 from homeassistant.components.persistent_notification import (
     async_create as async_create_persistent_notification,
 )
+from homeassistant.components.tag.const import (
+    DEVICE_ID as TAG_DEVICE_ID,
+)
+from homeassistant.components.tag.const import (
+    EVENT_TAG_SCANNED,
+    TAG_ID,
+)
 from homeassistant.const import (
     ATTR_FRIENDLY_NAME,
     STATE_OFF,
@@ -40,6 +47,9 @@ from .const import (
     ATTR_LAST_ARMED_STATE,
     ATTR_LAST_CHANGED_AT,
     ATTR_MONITORED_SENSORS,
+    ATTR_TAG_DEVICE_ID,
+    ATTR_TAG_ID,
+    ATTR_TAG_NAME,
     ATTR_TRIGGERED_BY,
     ATTR_TRIGGERED_BY_NAME,
     ATTR_TRIGGERED_COUNT,
@@ -58,6 +68,8 @@ from .const import (
     CONF_REQUIRE_ARM_CODE,
     CONF_REQUIRE_DISARM_CODE,
     CONF_STARTUP_DELAY,
+    CONF_TAG_ID,
+    CONF_TAG_NAME,
     CONF_TRIGGER_TIME,
     CONF_VACATION_SENSORS,
     DEFAULT_ARM_HOME_ON_START,
@@ -126,6 +138,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         self._triggered_count = 0
         self._unsub_sensor_listener: CALLBACK_TYPE | None = None
         self._unsub_badge_listener: CALLBACK_TYPE | None = None
+        self._unsub_tag_listener: CALLBACK_TYPE | None = None
         self._unsub_start_listener: CALLBACK_TYPE | None = None
         self._startup_timer_handle: CALLBACK_TYPE | None = None
         self._startup_ready = False
@@ -238,10 +251,15 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         self._badges = [
             badge
             for badge in options.get(CONF_BADGES, [])
-            if CONF_BADGE_ENTITY in badge and CONF_BADGE_NAME in badge
+            if CONF_BADGE_NAME in badge
+            and (CONF_TAG_ID in badge or CONF_BADGE_ENTITY in badge)
+        ]
+        self._tag_badges = [badge for badge in self._badges if CONF_TAG_ID in badge]
+        self._entity_badges = [
+            badge for badge in self._badges if CONF_BADGE_ENTITY in badge
         ]
         self._badge_entities = list(
-            dict.fromkeys(badge[CONF_BADGE_ENTITY] for badge in self._badges)
+            dict.fromkeys(badge[CONF_BADGE_ENTITY] for badge in self._entity_badges)
         )
         self._away_sensors = list(options.get(CONF_AWAY_SENSORS, []))
         self._home_sensors = list(options.get(CONF_HOME_SENSORS, []))
@@ -314,6 +332,10 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         if self._badge_entities:
             self._unsub_badge_listener = async_track_state_change_event(
                 self.hass, self._badge_entities, self._badge_state_changed
+            )
+        if self._tag_badges:
+            self._unsub_tag_listener = self.hass.bus.async_listen(
+                EVENT_TAG_SCANNED, self._tag_scanned
             )
 
     @property
@@ -522,6 +544,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         if self._unsub_badge_listener:
             self._unsub_badge_listener()
             self._unsub_badge_listener = None
+        if self._unsub_tag_listener:
+            self._unsub_tag_listener()
+            self._unsub_tag_listener = None
 
     @callback
     def _write_state(self) -> None:
@@ -594,7 +619,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         badge = next(
             (
                 badge
-                for badge in self._badges
+                for badge in self._entity_badges
                 if badge[CONF_BADGE_ENTITY] == entity_id
                 and self._is_badge_match(badge, new_state)
             ),
@@ -611,6 +636,42 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
                 ATTR_BADGE_NAME: badge[CONF_BADGE_NAME],
                 ATTR_BADGE_ENTITY: entity_id,
                 ATTR_BADGE_VALUE: new_state.state,
+                "timestamp": timestamp.isoformat(),
+            },
+        )
+        self.hass.async_create_task(self._perform_disarm(validation=(True, False)))
+
+    @callback
+    def _tag_scanned(self, event: Event) -> None:
+        """Disarm when Home Assistant reports an authorized native tag."""
+        if not self._startup_ready or self.alarm_state not in {
+            *ARMED_STATES,
+            AlarmControlPanelState.ARMING,
+            AlarmControlPanelState.PENDING,
+            AlarmControlPanelState.TRIGGERED,
+        }:
+            return
+
+        tag_id = event.data.get(TAG_ID)
+        if not isinstance(tag_id, str):
+            return
+        badge = next(
+            (badge for badge in self._tag_badges if badge[CONF_TAG_ID] == tag_id),
+            None,
+        )
+        if badge is None:
+            return
+
+        timestamp = dt_util.utcnow()
+        tag_name = event.data.get("name") or badge.get(CONF_TAG_NAME) or f"Tag {tag_id}"
+        self.hass.bus.async_fire(
+            EVENT_BADGE_DISARM,
+            {
+                "entity_id": self.entity_id,
+                ATTR_BADGE_NAME: badge[CONF_BADGE_NAME],
+                ATTR_TAG_ID: tag_id,
+                ATTR_TAG_NAME: tag_name,
+                ATTR_TAG_DEVICE_ID: event.data.get(TAG_DEVICE_ID),
                 "timestamp": timestamp.isoformat(),
             },
         )

@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
+from homeassistant.components.tag.const import DEVICE_ID, EVENT_TAG_SCANNED, TAG_ID
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -19,6 +20,9 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.alarme_personnalisee.const import (
     ATTR_BYPASSED_SENSORS,
+    ATTR_TAG_DEVICE_ID,
+    ATTR_TAG_ID,
+    ATTR_TAG_NAME,
     ATTR_TRIGGERED_BY_NAME,
     CONF_ARM_HOME_ON_START,
     CONF_ARMING_TIME,
@@ -34,10 +38,13 @@ from custom_components.alarme_personnalisee.const import (
     CONF_REQUIRE_ARM_CODE,
     CONF_REQUIRE_DISARM_CODE,
     CONF_STARTUP_DELAY,
+    CONF_TAG_ID,
+    CONF_TAG_NAME,
     CONF_TRIGGER_TIME,
     CONF_VACATION_SENSORS,
     DOMAIN,
     EVENT_ALARM_TRIGGERED,
+    EVENT_BADGE_DISARM,
     EVENT_BYPASSED_SENSORS_CHANGED,
     EVENT_SENSOR_AVAILABILITY_CHANGED,
     ISSUE_BYPASSED_SENSORS,
@@ -48,6 +55,7 @@ from custom_components.alarme_personnalisee.runtime_data import AlarmConfigEntry
 
 FRONT_DOOR = "binary_sensor.front_door"
 BADGE_READER = "sensor.badge_reader"
+NATIVE_TAG_ID = "11111111-1111-1111-1111-111111111111"
 
 
 async def _setup_alarm(
@@ -245,6 +253,48 @@ async def test_badge_requires_exact_reader_value(hass: HomeAssistant) -> None:
     hass.states.async_set(BADGE_READER, "04-C3-D4")
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == AlarmControlPanelState.DISARMED
+
+
+async def test_native_rfid_tag_disarms_alarm(hass: HomeAssistant) -> None:
+    """A configured Home Assistant tag_id disarms without a reader entity."""
+    events = async_capture_events(hass, EVENT_BADGE_DISARM)
+    entry, entity_id = await _setup_alarm(
+        hass,
+        {
+            CONF_BADGES: [
+                {
+                    CONF_BADGE_NAME: "Franck",
+                    CONF_TAG_ID: NATIVE_TAG_ID,
+                    CONF_TAG_NAME: "Franck appartement",
+                }
+            ]
+        },
+    )
+    await _arm_away(hass, entity_id)
+    _finish_arming(entry)
+
+    hass.bus.async_fire(
+        EVENT_TAG_SCANNED,
+        {TAG_ID: "unknown-tag", "name": "Inconnu", DEVICE_ID: "rfid-reader"},
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == AlarmControlPanelState.ARMED_AWAY
+
+    hass.bus.async_fire(
+        EVENT_TAG_SCANNED,
+        {
+            TAG_ID: NATIVE_TAG_ID,
+            "name": "Franck appartement",
+            DEVICE_ID: "rfid-reader",
+        },
+    )
+    await hass.async_block_till_done()
+
+    assert hass.states.get(entity_id).state == AlarmControlPanelState.DISARMED
+    assert events[-1].data["badge_name"] == "Franck"
+    assert events[-1].data[ATTR_TAG_ID] == NATIVE_TAG_ID
+    assert events[-1].data[ATTR_TAG_NAME] == "Franck appartement"
+    assert events[-1].data[ATTR_TAG_DEVICE_ID] == "rfid-reader"
 
 
 async def test_disarm_code_and_reset_service(hass: HomeAssistant) -> None:

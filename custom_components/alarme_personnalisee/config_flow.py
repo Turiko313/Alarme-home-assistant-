@@ -8,6 +8,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import STATE_ON
 from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import selector
 
 from .const import (
@@ -27,6 +28,8 @@ from .const import (
     CONF_REQUIRE_ARM_CODE,
     CONF_REQUIRE_DISARM_CODE,
     CONF_STARTUP_DELAY,
+    CONF_TAG_ID,
+    CONF_TAG_NAME,
     CONF_TRIGGER_TIME,
     CONF_VACATION_SENSORS,
     DEFAULT_ARM_HOME_ON_START,
@@ -85,10 +88,106 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
         return self._options().setdefault(CONF_BADGES, [])
 
     @staticmethod
-    def _badge_label(badge: dict[str, Any]) -> str:
+    def _short_tag_id(tag_id: str) -> str:
+        """Return a readable shortened tag identifier."""
+        return tag_id if len(tag_id) <= 16 else f"{tag_id[:8]}…{tag_id[-4:]}"
+
+    def _known_tags(self) -> dict[str, str]:
+        """Return native Home Assistant tag IDs indexed by readable names."""
+        tags = {
+            entry.unique_id: (
+                entry.name
+                or entry.original_name
+                or entry.entity_id.removeprefix("tag.")
+            )
+            for entry in er.async_get(self.hass).entities.values()
+            if entry.entity_id.startswith("tag.") and entry.platform == "tag"
+        }
+        for badge in self._badges():
+            if tag_id := badge.get(CONF_TAG_ID):
+                tags.setdefault(
+                    str(tag_id),
+                    str(
+                        badge.get(CONF_TAG_NAME)
+                        or f"Tag {self._short_tag_id(str(tag_id))}"
+                    ),
+                )
+        return tags
+
+    def _tag_choices(self) -> list[selector.SelectOptionDict]:
+        """Return native tags as readable selector options."""
+        return [
+            {
+                "value": tag_id,
+                "label": f"{name} — {self._short_tag_id(tag_id)}",
+            }
+            for tag_id, name in sorted(
+                self._known_tags().items(), key=lambda item: item[1].casefold()
+            )
+        ]
+
+    def _normalize_tag_data(
+        self,
+        data: dict[str, Any],
+        existing: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        """Store a native tag with its current readable Home Assistant name."""
+        tag_id = str(data[CONF_TAG_ID]).strip()
+        known_name = self._known_tags().get(tag_id)
+        existing_name = (
+            existing.get(CONF_TAG_NAME)
+            if existing is not None and existing.get(CONF_TAG_ID) == tag_id
+            else None
+        )
+        return {
+            CONF_BADGE_NAME: str(data[CONF_BADGE_NAME]).strip(),
+            CONF_TAG_ID: tag_id,
+            CONF_TAG_NAME: str(
+                known_name or existing_name or f"Tag {self._short_tag_id(tag_id)}"
+            ),
+        }
+
+    def _tag_data_schema(
+        self,
+        defaults: dict[str, Any] | None = None,
+    ) -> vol.Schema:
+        """Build the schema used to select a native Home Assistant tag."""
+        defaults = defaults or {}
+        tag_key = (
+            vol.Required(CONF_TAG_ID, default=defaults[CONF_TAG_ID])
+            if defaults.get(CONF_TAG_ID)
+            else vol.Required(CONF_TAG_ID)
+        )
+        return vol.Schema(
+            {
+                vol.Required(
+                    CONF_BADGE_NAME,
+                    default=defaults.get(CONF_BADGE_NAME, ""),
+                ): vol.All(str, vol.Length(min=1)),
+                tag_key: selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=self._tag_choices(),
+                        custom_value=True,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                        sort=True,
+                    )
+                ),
+            }
+        )
+
+    def _badge_label(self, badge: dict[str, Any]) -> str:
         """Return a readable label for one badge credential."""
+        if tag_id := badge.get(CONF_TAG_ID):
+            tag_name = (
+                self._known_tags().get(str(tag_id)) or badge.get(CONF_TAG_NAME) or "Tag"
+            )
+            return (
+                f"{badge[CONF_BADGE_NAME]} — {tag_name} "
+                f"({self._short_tag_id(str(tag_id))})"
+            )
         return (
-            f"{badge[CONF_BADGE_NAME]} — {badge[CONF_BADGE_ENTITY]} = "
+            f"{badge[CONF_BADGE_NAME]} — ancien lecteur "
+            f"{badge.get(CONF_BADGE_ENTITY, '?')} = "
             f"{badge.get(CONF_BADGE_VALUE, STATE_ON)}"
         )
 
@@ -108,14 +207,34 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
         sections = []
         for name, badges in grouped.items():
             credentials = "\n".join(
-                (
-                    f"  - `{badge[CONF_BADGE_ENTITY]}` = "
-                    f"`{badge.get(CONF_BADGE_VALUE, STATE_ON)}`"
-                )
-                for badge in badges
+                self._badge_description_line(badge) for badge in badges
             )
-            sections.append(f"**{name}** ({len(badges)})\n{credentials}")
+            label = "tag" if len(badges) == 1 else "tags"
+            sections.append(f"**{name}** ({len(badges)} {label})\n{credentials}")
         return "\n\n".join(sections) or "-"
+
+    def _badge_description_line(self, badge: dict[str, Any]) -> str:
+        """Return one readable native-tag or legacy-reader description."""
+        if tag_id := badge.get(CONF_TAG_ID):
+            tag_name = (
+                self._known_tags().get(str(tag_id)) or badge.get(CONF_TAG_NAME) or "Tag"
+            )
+            return f"- **{tag_name}** — `{self._short_tag_id(str(tag_id))}`"
+        return (
+            f"- Ancien lecteur `{badge.get(CONF_BADGE_ENTITY, '?')}` = "
+            f"`{badge.get(CONF_BADGE_VALUE, STATE_ON)}`"
+        )
+
+    @staticmethod
+    def _badge_identity(badge: dict[str, Any]) -> tuple[str, ...]:
+        """Return the stable identity used for duplicate detection."""
+        if tag_id := badge.get(CONF_TAG_ID):
+            return ("tag", str(tag_id))
+        return (
+            "entity",
+            str(badge.get(CONF_BADGE_ENTITY, "")),
+            str(badge.get(CONF_BADGE_VALUE, STATE_ON)),
+        )
 
     def _badge_is_duplicate(
         self,
@@ -124,16 +243,14 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
         ignored_index: int | None = None,
     ) -> bool:
         """Return whether a reader/value pair is already configured."""
+        identity = self._badge_identity(badge_data)
         return any(
-            index != ignored_index
-            and badge[CONF_BADGE_ENTITY] == badge_data[CONF_BADGE_ENTITY]
-            and str(badge.get(CONF_BADGE_VALUE, STATE_ON))
-            == str(badge_data[CONF_BADGE_VALUE])
+            index != ignored_index and self._badge_identity(badge) == identity
             for index, badge in enumerate(self._badges())
         )
 
     @staticmethod
-    def _badge_data_schema(
+    def _legacy_badge_data_schema(
         defaults: dict[str, Any] | None = None,
     ) -> vol.Schema:
         """Build the common badge credential schema."""
@@ -279,15 +396,15 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
             return self.async_create_entry(title="", data=self._options())
 
         actions = {
-            "add": "Ajouter une personne ou un badge / Add",
+            "add": "Ajouter un tag RFID / Add RFID tag",
             "done": "Terminer / Done",
         }
         if self._badges():
             actions = {
-                "add": "Ajouter une personne ou un badge / Add",
-                "add_to_name": "Ajouter un badge à un nom existant / Add to name",
-                "edit": "Modifier un badge / Edit",
-                "remove": "Supprimer un badge / Remove",
+                "add": "Ajouter un tag RFID / Add RFID tag",
+                "add_to_name": "Ajouter un tag à une personne / Add to name",
+                "edit": "Modifier un tag / Edit",
+                "remove": "Supprimer un tag / Remove",
                 "done": "Terminer / Done",
             }
         return self.async_show_form(
@@ -304,15 +421,16 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
         """Add an authorized badge."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            if self._badge_is_duplicate(user_input):
+            tag_data = self._normalize_tag_data(user_input)
+            if self._badge_is_duplicate(tag_data):
                 errors["base"] = "badge_already_configured"
             else:
-                self._badges().append(dict(user_input))
+                self._badges().append(tag_data)
                 return await self.async_step_badges()
 
         return self.async_show_form(
             step_id="add_badge",
-            data_schema=self._badge_data_schema(user_input),
+            data_schema=self._tag_data_schema(user_input),
             errors=errors,
         )
 
@@ -325,15 +443,16 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
 
         errors: dict[str, str] = {}
         if user_input is not None:
-            badge_data = {
-                CONF_BADGE_NAME: user_input["badge_owner"],
-                CONF_BADGE_ENTITY: user_input[CONF_BADGE_ENTITY],
-                CONF_BADGE_VALUE: user_input[CONF_BADGE_VALUE],
-            }
-            if self._badge_is_duplicate(badge_data):
+            tag_data = self._normalize_tag_data(
+                {
+                    CONF_BADGE_NAME: user_input["badge_owner"],
+                    CONF_TAG_ID: user_input[CONF_TAG_ID],
+                }
+            )
+            if self._badge_is_duplicate(tag_data):
                 errors["base"] = "badge_already_configured"
             else:
-                self._badges().append(badge_data)
+                self._badges().append(tag_data)
                 return await self.async_step_badges()
 
         names = list(dict.fromkeys(badge[CONF_BADGE_NAME] for badge in self._badges()))
@@ -342,12 +461,14 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required("badge_owner"): vol.In({name: name for name in names}),
-                    vol.Required(CONF_BADGE_ENTITY): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=["sensor", "binary_sensor"]
+                    vol.Required(CONF_TAG_ID): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=self._tag_choices(),
+                            custom_value=True,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                            sort=True,
                         )
                     ),
-                    vol.Required(CONF_BADGE_VALUE, default=STATE_ON): str,
                 }
             ),
             errors=errors,
@@ -356,7 +477,7 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
     async def async_step_edit_badge(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Select and edit an existing badge credential."""
+        """Select and edit an existing tag or legacy badge credential."""
         badges = self._badges()
         if not badges:
             return await self.async_step_badges()
@@ -372,22 +493,37 @@ class AlarmePersonnaliseeOptionsFlow(config_entries.OptionsFlow):
                 ),
             )
 
+        existing = badges[self._editing_badge_index]
         errors: dict[str, str] = {}
         if user_input is not None:
+            badge_data = (
+                self._normalize_tag_data(user_input, existing)
+                if CONF_TAG_ID in existing
+                else {
+                    CONF_BADGE_NAME: user_input[CONF_BADGE_NAME],
+                    CONF_BADGE_ENTITY: user_input[CONF_BADGE_ENTITY],
+                    CONF_BADGE_VALUE: user_input[CONF_BADGE_VALUE],
+                }
+            )
             if self._badge_is_duplicate(
-                user_input,
+                badge_data,
                 ignored_index=self._editing_badge_index,
             ):
                 errors["base"] = "badge_already_configured"
             else:
-                badges[self._editing_badge_index] = dict(user_input)
+                badges[self._editing_badge_index] = badge_data
                 self._editing_badge_index = None
                 return await self.async_step_badges()
 
-        defaults = user_input or badges[self._editing_badge_index]
+        defaults = user_input or existing
+        data_schema = (
+            self._tag_data_schema(defaults)
+            if CONF_TAG_ID in existing
+            else self._legacy_badge_data_schema(defaults)
+        )
         return self.async_show_form(
             step_id="edit_badge",
-            data_schema=self._badge_data_schema(defaults),
+            data_schema=data_schema,
             errors=errors,
         )
 
