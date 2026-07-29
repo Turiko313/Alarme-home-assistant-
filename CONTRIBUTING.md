@@ -1,31 +1,31 @@
-# Contribuer à Alarme Personnalisée
+# Contribuer Ã  Alarme PersonnalisÃ©e
 
-Merci de votre intérêt pour contribuer à ce projet ! ??
+Merci de votre intÃ©rÃªt pour contribuer Ã  ce projet ! ??
 
 ## Comment contribuer
 
 ### Rapporter des bugs
 
-Si vous trouvez un bug, veuillez créer une [issue](https://github.com/Turiko313/Alarme-home-assistant-/issues) en incluant :
+Si vous trouvez un bug, veuillez crÃ©er une [issue](https://github.com/Turiko313/Alarme-home-assistant-/issues) en incluant :
 
-- Une description claire du problème
-- Les étapes pour reproduire le bug
-- La version de Home Assistant utilisée
-- La version de l'intégration
+- Une description claire du problÃ¨me
+- Les Ã©tapes pour reproduire le bug
+- La version de Home Assistant utilisÃ©e
+- La version de l'intÃ©gration
 - Les logs pertinents (si disponibles)
 
-### Suggérer des améliorations
+### SuggÃ©rer des amÃ©liorations
 
-Les suggestions sont les bienvenues ! Créez une issue avec :
+Les suggestions sont les bienvenues ! CrÃ©ez une issue avec :
 
-- Une description claire de la fonctionnalité souhaitée
-- Pourquoi cette fonctionnalité serait utile
+- Une description claire de la fonctionnalitÃ© souhaitÃ©e
+- Pourquoi cette fonctionnalitÃ© serait utile
 - Des exemples d'utilisation si possible
 
 ### Soumettre des Pull Requests
 
 1. **Fork** le projet
-2. **Créez** une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`)
+2. **CrÃ©ez** une branche pour votre fonctionnalitÃ© (`git checkout -b feature/AmazingFeature`)
 3. **Committez** vos changements (`git commit -m 'Add some AmazingFeature'`)
 4. **Push** vers la branche (`git push origin feature/AmazingFeature`)
 5. **Ouvrez** une Pull Request
@@ -35,49 +35,59 @@ Les suggestions sont les bienvenues ! Créez une issue avec :
 - Suivez le style de code Python PEP 8
 - Ajoutez des commentaires pour les sections complexes
 - Testez vos modifications avec Home Assistant
-- Mettez à jour la documentation si nécessaire
+- Mettez Ã  jour la documentation si nÃ©cessaire
 
 ### Tests
 
 Avant de soumettre une PR :
 
-1. Testez l'intégration dans Home Assistant
-2. Vérifiez qu'il n'y a pas d'erreurs dans les logs
-3. Testez les différents scénarios (armement, désarmement, déclenchement)
+```bash
+python -m pip install -r requirements_test.txt
+python -m ruff check custom_components tests
+python -m ruff format --check custom_components tests
+python -m pytest --cov=custom_components.alarme_personnalisee --cov-report=term-missing
+```
+
+Les tests couvrent notamment l'armement avec contournement temporaire des zones
+ouvertes, leur rÃ©intÃ©gration, le dÃ©clenchement, les codes, les badges, les
+notifications, les entitÃ©s de configuration et les erreurs de services.
+Le flux de configuration et d'options est couvert intÃ©gralement. La CI refuse
+toute rÃ©gression sous 95 % de couverture.
 
 ## Structure du projet
 
 ```
 custom_components/alarme_personnalisee/
-??? __init__.py              # Initialisation de l'intégration
-??? alarm_control_panel.py   # Entité principale de l'alarme
+??? __init__.py              # Initialisation de l'intÃ©gration
+??? alarm_control_panel.py   # EntitÃ© principale de l'alarme
 ??? config_flow.py           # Configuration UI
 ??? const.py                 # Constantes
-??? services.py              # Services personnalisés
-??? manifest.json            # Métadonnées de l'intégration
-??? strings.json             # Traductions par défaut
+??? runtime_data.py          # DonnÃ©es partagÃ©es Ã  l'exÃ©cution
+??? entity.py                # Informations d'appareil communes
+??? manifest.json            # MÃ©tadonnÃ©es de l'intÃ©gration
+??? strings.json             # Traductions par dÃ©faut
 ??? services.yaml            # Documentation des services
 ??? translations/
     ??? en.json              # Traduction anglaise
-    ??? fr.json              # Traduction française
+    ??? fr.json              # Traduction franÃ§aise
 ```
 
 ## Ajouter une traduction
 
 Pour ajouter une nouvelle langue :
 
-1. Créez un nouveau fichier dans `custom_components/alarme_personnalisee/translations/`
+1. CrÃ©ez un nouveau fichier dans `custom_components/alarme_personnalisee/translations/`
 2. Nommez-le selon le code de langue (ex: `de.json` pour l'allemand)
 3. Copiez la structure de `en.json` ou `fr.json`
-4. Traduisez toutes les chaînes
+4. Traduisez toutes les chaÃ®nes
 
 ## Questions ?
 
-N'hésitez pas à ouvrir une issue pour toute question !
+N'hÃ©sitez pas Ã  ouvrir une issue pour toute question !
 
 ## Code de conduite
 
-Soyez respectueux et constructif dans vos interactions. Ce projet vise à créer une communauté accueillante pour tous.
+Soyez respectueux et constructif dans vos interactions. Ce projet vise Ã  crÃ©er une communautÃ© accueillante pour tous.
 
 ---
 

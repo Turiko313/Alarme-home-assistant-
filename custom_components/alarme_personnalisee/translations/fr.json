@@ -2,8 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "title": "Alarme Personnalisee",
-        "description": "Configurer votre alarme personnalisee"
+        "title": "Alarme personnalisée",
+        "description": "Créez une alarme virtuelle contrôlée par vos capteurs Home Assistant.",
+        "data": {
+          "name": "Nom de l'alarme"
+        }
       }
     }
   },
@@ -12,28 +15,28 @@
       "init": {
         "title": "Menu de configuration",
         "menu_options": {
-          "general": "Parametres generaux",
+          "general": "Paramètres généraux",
           "sensors": "Capteurs",
           "badges": "Badges RFID/NFC"
         }
       },
       "general": {
-        "title": "Parametres generaux",
-        "description": "Configuration de l'alarme",
+        "title": "Paramètres généraux",
+        "description": "Configurez les codes, délais et le réarmement automatique.",
         "data": {
           "code": "Code PIN (optionnel)",
           "require_arm_code": "Exiger un code pour armer",
-          "require_disarm_code": "Exiger un code pour desarmer",
+          "require_disarm_code": "Exiger un code pour désarmer",
           "emergency_code": "Code d'urgence (optionnel)",
-          "arming_time": "Delai d'armement (secondes)",
-          "delay_time": "Delai d'entree (secondes)",
-          "trigger_time": "Duree de declenchement (secondes)",
-          "rearm_after_trigger": "Rearmer automatiquement apres declenchement"
+          "arming_time": "Délai d'armement (secondes)",
+          "delay_time": "Délai d'entrée (secondes)",
+          "trigger_time": "Durée de déclenchement (secondes)",
+          "rearm_after_trigger": "Réarmer automatiquement après déclenchement"
         }
       },
       "sensors": {
         "title": "Configuration des capteurs",
-        "description": "Selectionnez les capteurs pour chaque mode",
+        "description": "Sélectionnez les capteurs binaires surveillés dans chaque mode.",
         "data": {
           "away_sensors": "Capteurs en mode Absent",
           "home_sensors": "Capteurs en mode Domicile",
@@ -42,40 +45,43 @@
       },
       "badges": {
         "title": "Gestion des badges",
-        "description": "{badges_list}",
+        "description": "Badges autorisés :\n{badges_list}",
         "data": {
           "action": "Action"
         }
       },
       "add_badge": {
         "title": "Ajouter un badge",
-        "description": "Configurez un nouveau badge RFID/NFC",
+        "description": "Saisissez la valeur exacte renvoyée par le lecteur pour ce badge. Utilisez `on` pour un capteur binaire dédié.",
         "data": {
           "badge_name": "Nom du badge",
-          "badge_entity": "Entite du lecteur"
+          "badge_entity": "Entité du lecteur",
+          "badge_value": "Valeur attendue du lecteur"
         }
       },
       "remove_badge": {
         "title": "Supprimer un badge",
-        "description": "Selectionnez le badge a supprimer",
         "data": {
-          "badge_to_remove": "Badge a supprimer"
+          "badge_to_remove": "Badge à supprimer"
         }
       }
+    },
+    "error": {
+      "badge_already_configured": "Ce lecteur et cette valeur de badge sont déjà configurés."
     }
   },
   "entity": {
     "button": {
       "reset_trigger_count": {
-        "name": "Reinitialiser le compteur"
+        "name": "Réinitialiser le compteur"
       }
     },
     "sensor": {
       "trigger_count": {
-        "name": "Nombre de declenchements"
+        "name": "Nombre de déclenchements"
       },
       "last_triggered_by": {
-        "name": "Dernier capteur declencheur"
+        "name": "Dernier capteur déclencheur"
       },
       "last_changed_at": {
         "name": "Dernier changement"
@@ -83,19 +89,34 @@
     },
     "switch": {
       "rearm_after_trigger": {
-        "name": "Rearmer apres declenchement"
+        "name": "Réarmer après déclenchement"
       }
     },
     "number": {
       "arming_time": {
-        "name": "Delai d'armement"
+        "name": "Délai d'armement"
       },
       "delay_time": {
-        "name": "Delai d'entree"
+        "name": "Délai d'entrée"
       },
       "trigger_time": {
-        "name": "Duree de declenchement"
+        "name": "Durée de déclenchement"
       }
+    }
+  },
+  "exceptions": {
+    "invalid_alarm_entity": {
+      "message": "{entity_id} n'est pas une entité d'alarme fournie par cette intégration."
+    }
+  },
+  "issues": {
+    "unavailable_sensors": {
+      "title": "Capteurs de sécurité indisponibles pour {alarm_name}",
+      "description": "L'alarme ne peut plus surveiller toutes les zones configurées, car les entités suivantes sont absentes, inconnues ou indisponibles :\n\n{sensors}\n\nVérifiez leur alimentation, leur connexion réseau et leur intégration d'origine. Cette alerte disparaîtra automatiquement lorsque toutes les entités seront de nouveau disponibles."
+    },
+    "bypassed_sensors": {
+      "title": "Zones temporairement contournées pour {alarm_name}",
+      "description": "L'alarme est armée, mais ces zones sont temporairement contournées car elles n'étaient pas fermées :\n\n{sensors}\n\nChaque zone réintégrera automatiquement la protection active dès qu'elle indiquera `off`. Son prochain passage à `on` déclenchera alors normalement l'alarme."
     }
   }
 }

@@ -1,69 +1,74 @@
-# Exemples d'automatisations pour Alarme Personnalisée
+# Exemples d'automatisations pour Alarme PersonnalisÃ©e
 
-## 1. Notification lors du déclenchement de l'alarme
+## 1. Notification lors du dÃ©clenchement de l'alarme
 
 ```yaml
 automation:
   - id: notification_alarme_declenchee
-    alias: "Notification - Alarme déclenchée"
-    description: "Envoie une notification lorsque l'alarme est déclenchée"
+    alias: "Notification - Alarme dÃ©clenchÃ©e"
+    description: "Envoie une notification lorsque l'alarme est dÃ©clenchÃ©e"
     trigger:
       - platform: event
         event_type: alarme_personnalisee.triggered
     action:
       - service: notify.mobile_app_votre_telephone
         data:
-          title: "?? Alarme déclenchée!"
+          title: "?? Alarme dÃ©clenchÃ©e!"
           message: >
-            L'alarme a été déclenchée par le capteur: 
-            {{ trigger.event.data.triggered_by }}
-            à {{ trigger.event.data.timestamp }}
+            L'alarme a Ã©tÃ© dÃ©clenchÃ©e par
+            {{ trigger.event.data.triggered_by_name }}
+            ({{ trigger.event.data.triggered_by }})
+            Ã  {{ trigger.event.data.timestamp }}
           data:
             priority: high
             ttl: 0
             channel: alarm
 ```
 
-## 1.5 Notification si l'armement est annulé (NOUVEAU)
+## 1.5 Notification si des zones sont contournÃ©es Ã  l'armement
 
 ```yaml
 automation:
-  - id: notification_armement_annule
-    alias: "Notification - Armement annulé"
-    description: "Alerte si un capteur empêche l'armement"
+  - id: notification_zones_contournees
+    alias: "Notification - Zones contournÃ©es"
+    description: "Alerte si l'alarme s'arme avec une zone ouverte ou inconnue"
     trigger:
       - platform: event
-        event_type: alarme_personnalisee.arming_cancelled
+        event_type: alarme_personnalisee.bypassed_sensors_changed
+    condition:
+      - condition: template
+        value_template: "{{ trigger.event.data.bypassed_sensors | count > 0 }}"
     action:
       - service: notify.mobile_app_votre_telephone
         data:
-          title: "?? Armement annulé"
-          message: >
-            L'armement a été annulé car le capteur {{ trigger.event.data.cancelled_by }} est ouvert.
-            Fermez toutes les portes et fenêtres avant d'armer.
+          title: "âš ï¸ Alarme armÃ©e avec protection rÃ©duite"
+          message: >-
+            Zones temporairement contournÃ©es :
+            {{ trigger.event.data.bypassed_sensors | join(', ') }}.
+            Elles seront rÃ©intÃ©grÃ©es automatiquement aprÃ¨s leur fermeture.
           data:
             priority: high
             channel: alarm
 ```
 
-## 2. Notification lors d'un désarmement d'urgence
+## 2. Notification lors d'un dÃ©sarmement d'urgence
 
 ```yaml
 automation:
   - id: notification_urgence
-    alias: "Notification - Code d'urgence utilisé"
-    description: "Alerte lorsque le code d'urgence est utilisé"
+    alias: "Notification - Code d'urgence utilisÃ©"
+    description: "Alerte lorsque le code d'urgence est utilisÃ©"
     trigger:
       - platform: event
         event_type: alarme_personnalisee.urgence
     action:
       - service: notify.famille
         data:
-          title: "?? Code d'urgence utilisé!"
-          message: "Le code d'urgence a été utilisé pour désarmer l'alarme"
+          title: "?? Code d'urgence utilisÃ©!"
+          message: "Le code d'urgence a Ã©tÃ© utilisÃ© pour dÃ©sarmer l'alarme"
       - service: notify.contacts_urgence
         data:
-          message: "Code d'urgence activé à la maison"
+          message: "Code d'urgence activÃ© Ã  la maison"
 ```
 
 ## 3. Armer automatiquement l'alarme en mode Absent
@@ -89,13 +94,13 @@ automation:
           code: "1234"  # Votre code PIN
 ```
 
-## 4. Désarmer automatiquement au retour
+## 4. DÃ©sarmer automatiquement au retour
 
 ```yaml
 automation:
   - id: desarmer_alarme_retour
-    alias: "Alarme - Désarmer au retour"
-    description: "Désarme l'alarme quand quelqu'un rentre"
+    alias: "Alarme - DÃ©sarmer au retour"
+    description: "DÃ©sarme l'alarme quand quelqu'un rentre"
     trigger:
       - platform: state
         entity_id: binary_sensor.porte_entree
@@ -121,7 +126,7 @@ automation:
 automation:
   - id: armer_alarme_nuit
     alias: "Alarme - Mode nuit automatique"
-    description: "Arme l'alarme en mode Domicile à 23h"
+    description: "Arme l'alarme en mode Domicile Ã  23h"
     trigger:
       - platform: time
         at: "23:00:00"
@@ -137,13 +142,13 @@ automation:
           code: "1234"
 ```
 
-## 6. Statistiques de déclenchements mensuels
+## 6. Statistiques de dÃ©clenchements mensuels
 
 ```yaml
 automation:
   - id: reset_compteur_alarme_mensuel
     alias: "Alarme - Reset compteur mensuel"
-    description: "Réinitialise le compteur de déclenchements chaque mois"
+    description: "RÃ©initialise le compteur de dÃ©clenchements chaque mois"
     trigger:
       - platform: time
         at: "00:00:00"
@@ -175,13 +180,13 @@ automation:
           code: "1234"
 ```
 
-## 8. Alerte si alarme déclenchée plus de X fois
+## 8. Alerte si alarme dÃ©clenchÃ©e plus de X fois
 
 ```yaml
 automation:
   - id: alerte_declenchements_multiples
-    alias: "Alarme - Alerte déclenchements multiples"
-    description: "Alerte si l'alarme est déclenchée plus de 3 fois"
+    alias: "Alarme - Alerte dÃ©clenchements multiples"
+    description: "Alerte si l'alarme est dÃ©clenchÃ©e plus de 3 fois"
     trigger:
       - platform: state
         entity_id: alarm_control_panel.alarme
@@ -193,19 +198,19 @@ automation:
     action:
       - service: notify.admin
         data:
-          title: "?? Alarme - Multiples déclenchements"
+          title: "?? Alarme - Multiples dÃ©clenchements"
           message: >
-            L'alarme a été déclenchée {{ state_attr('alarm_control_panel.alarme', 'triggered_count') }} fois.
-            Vérifiez la configuration des capteurs.
+            L'alarme a Ã©tÃ© dÃ©clenchÃ©e {{ state_attr('alarm_control_panel.alarme', 'triggered_count') }} fois.
+            VÃ©rifiez la configuration des capteurs.
 ```
 
-## 9. Historique des derniers déclenchements
+## 9. Historique des derniers dÃ©clenchements
 
 ```yaml
-# Template sensor pour suivre les déclenchements
+# Template sensor pour suivre les dÃ©clenchements
 template:
   - sensor:
-      - name: "Alarme - Dernier déclenchement"
+      - name: "Alarme - Dernier dÃ©clenchement"
         state: >
           {% if state_attr('alarm_control_panel.alarme', 'last_triggered_by') %}
             {{ state_attr('alarm_control_panel.alarme', 'last_triggered_by') }}
@@ -219,13 +224,13 @@ template:
             {{ state_attr('alarm_control_panel.alarme', 'triggered_count') }}
 ```
 
-## 10. Flash des lumières lors du déclenchement
+## 10. Flash des lumiÃ¨res lors du dÃ©clenchement
 
 ```yaml
 automation:
   - id: flash_lumieres_alarme
-    alias: "Alarme - Flash lumières"
-    description: "Fait clignoter les lumières lors du déclenchement"
+    alias: "Alarme - Flash lumiÃ¨res"
+    description: "Fait clignoter les lumiÃ¨res lors du dÃ©clenchement"
     trigger:
       - platform: event
         event_type: alarme_personnalisee.triggered

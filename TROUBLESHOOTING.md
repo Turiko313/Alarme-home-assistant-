@@ -1,146 +1,52 @@
-# Guide de dépannage - Alarme Personnalisée
+# Guide de dÃ©pannage â€” Alarme PersonnalisÃ©e
 
-## ?? Vérifications après le redémarrage de Home Assistant
+## VÃ©rifications rapides
 
-### 1. Vérifier que l'intégration est chargée
+1. Dans **ParamÃ¨tres > Appareils et services**, vÃ©rifiez que l'intÃ©gration est chargÃ©e.
+2. Dans **Outils de dÃ©veloppement > Ã‰tats**, recherchez l'entitÃ© `alarm_control_panel` portant le nom choisi lors de l'installation.
+3. VÃ©rifiez que les capteurs configurÃ©s sont des `binary_sensor` et passent bien Ã  `on` lorsqu'ils s'activent.
+4. Dans **ParamÃ¨tres > SystÃ¨me > Journaux**, recherchez `alarme_personnalisee`.
 
-Allez dans **Paramètres** > **Appareils et services** et vérifiez que "Alarme Personnalisée" apparaît dans la liste.
+L'identifiant de l'entitÃ© dÃ©pend du nom choisi et peut avoir Ã©tÃ© modifiÃ© par l'utilisateur. Ne supposez donc pas qu'il s'agit toujours de `alarm_control_panel.alarme`.
 
-### 2. Vérifier l'entité de l'alarme
+## Une zone est ouverte au moment de l'armement
 
-Allez dans **Outils de développement** > **États** et recherchez `alarm_control_panel.alarme`
+- L'alarme s'arme quand mÃªme et place temporairement toute zone ouverte, inconnue ou indisponible dans l'attribut `bypassed_sensors`.
+- Une alerte apparaÃ®t dans **ParamÃ¨tres > SystÃ¨me > RÃ©parations** et l'Ã©vÃ©nement `alarme_personnalisee.bypassed_sensors_changed` permet d'envoyer une notification personnelle.
+- DÃ¨s que la zone indique `off`, elle est rÃ©intÃ©grÃ©e automatiquement. Son prochain passage Ã  `on` dÃ©clenchera normalement l'alarme.
 
-L'entité devrait afficher :
-- **État** : `disarmed`, `armed_home`, `armed_away`, etc.
-- **Attributs** :
-  - `triggered_count`
-  - `last_triggered_by`
-  - `last_changed_at`
-  - `monitored_sensors`
+## L'alarme reste dÃ©sarmÃ©e aprÃ¨s une commande
 
-### 3. Vérifier les logs
+- Si un code d'armement est exigÃ©, vÃ©rifiez le code transmis.
+- Une alarme en attente (`pending`) ou dÃ©clenchÃ©e (`triggered`) doit d'abord Ãªtre dÃ©sarmÃ©e.
 
-Allez dans **Paramètres** > **Système** > **Journaux** et recherchez "alarme" ou "Alarme Personnalisée"
+## Un capteur ne dÃ©clenche pas l'alarme
 
-**Logs attendus :**
-```
-[custom_components.alarme_personnalisee] Setting up...
-[custom_components.alarme_personnalisee.alarm_control_panel] Alarm panel initialized
-```
+- VÃ©rifiez qu'il est affectÃ© au mode actuellement armÃ©.
+- VÃ©rifiez que son Ã©tat actif est exactement `on`.
+- Consultez **ParamÃ¨tres > SystÃ¨me > RÃ©parations** : l'intÃ©gration y signale les entitÃ©s absentes, inconnues ou indisponibles.
+- AprÃ¨s une modification des options, confirmez que l'intÃ©gration ne signale aucune erreur dans les journaux.
 
-**Logs d'erreur à surveiller :**
-- `Error loading panel` ? Problème avec le panneau HTML
-- `Entity not found` ? Problème avec l'entité alarme
-- `Service not registered` ? Problème avec le service reset
+## Un badge ne dÃ©sarme pas l'alarme
 
-### 4. Vérifier le panneau dans la sidebar
+- Pour un lecteur de type `sensor`, la valeur configurÃ©e doit correspondre exactement Ã  son Ã©tat.
+- Pour un `binary_sensor` dÃ©diÃ© Ã  un badge, utilisez la valeur `on`.
+- Un badge n'est pris en compte que pendant l'armement, lorsque l'alarme est armÃ©e, en attente ou dÃ©clenchÃ©e.
 
-Le panneau "Alarme" (icône ???) devrait apparaître dans la barre latérale gauche.
+## RÃ©initialiser le compteur
 
-**Si le panneau n'apparaît pas :**
-1. Effacez le cache du navigateur (Ctrl+Shift+Delete)
-2. Rechargez la page (Ctrl+F5)
-3. Vérifiez les logs de Home Assistant
-4. Vérifiez que le fichier `panel.html` existe dans `custom_components/alarme_personnalisee/`
+Utilisez le bouton de rÃ©initialisation crÃ©Ã© avec l'alarme, ou l'action :
 
-### 5. Tester le panneau
-
-Une fois dans le panneau :
-1. Vérifiez que l'état de l'alarme s'affiche
-2. Vérifiez que les statistiques sont visibles
-3. Ouvrez la console du navigateur (F12) pour voir les logs JavaScript
-
-**Messages de débogage dans la console :**
-```
-[Alarme Panel] DOM loaded, initializing...
-[Alarme Panel] Attempting to connect to Home Assistant...
-[Alarme Panel] Connection established!
-[Alarme Panel] Entity state: disarmed
-```
-
-### 6. Tester le service reset_trigger_count
-
-Dans **Outils de développement** > **Services**, appelez :
-- **Service** : `alarme_personnalisee.reset_trigger_count`
-- **Données** :
 ```yaml
-entity_id: alarm_control_panel.alarme
+action: alarme_personnalisee.reset_trigger_count
+data:
+  entity_id: alarm_control_panel.votre_alarme
 ```
 
-Cliquez sur "Appeler le service". Le compteur devrait passer à 0.
+## Activer les journaux de diagnostic
 
-## ? Problèmes courants et solutions
+Ajoutez temporairement ceci dans `configuration.yaml`, puis redÃ©marrez Home Assistant :
 
-### Problème : "Entité alarme introuvable"
-
-**Solution :**
-1. Vérifiez que l'intégration est bien configurée
-2. Redémarrez Home Assistant
-3. Vérifiez le nom de l'entité dans États (peut-être `alarm_control_panel.alarme_personnalisee`)
-4. Si le nom est différent, modifiez `ALARM_ENTITY_ID` dans `panel.html`
-
-### Problème : Le panneau reste sur "Chargement..."
-
-**Solution :**
-1. Ouvrez la console du navigateur (F12)
-2. Regardez les messages d'erreur
-3. Vérifiez que le fichier panel.html se charge bien (onglet Network)
-4. Essayez de rafraîchir plusieurs fois
-
-### Problème : "Service alarme_personnalisee.reset_trigger_count not found"
-
-**Solution :**
-1. Vérifiez dans **Outils de développement** > **Services** que le service existe
-2. Redémarrez Home Assistant
-3. Vérifiez les logs pour voir si le service a été enregistré
-
-### Problème : Les capteurs ne s'affichent pas
-
-**Solution :**
-1. Allez dans **Paramètres** > **Appareils et services** > **Alarme Personnalisée**
-2. Cliquez sur "Configurer"
-3. Ajoutez des capteurs pour au moins un mode (Domicile, Absent, ou Vacances)
-4. Sauvegardez et actualisez le panneau
-
-## ?? Checklist de diagnostic
-
-- [ ] L'intégration apparaît dans Paramètres > Appareils et services
-- [ ] L'entité `alarm_control_panel.alarme` existe dans États
-- [ ] Aucune erreur dans les logs de Home Assistant
-- [ ] Le panneau "Alarme" apparaît dans la sidebar
-- [ ] Le panneau affiche l'état de l'alarme
-- [ ] Les capteurs sont configurés
-- [ ] Les capteurs s'affichent dans le panneau
-- [ ] Le service `reset_trigger_count` est disponible
-- [ ] Les logs d'événements se chargent
-
-## ?? Commandes utiles
-
-### Redémarrer Home Assistant
-```bash
-# Via l'interface : Paramètres > Système > Redémarrer
-# Ou via CLI sur le RPI5 :
-ha core restart
-```
-
-### Voir les logs en temps réel
-```bash
-ha core logs --follow
-```
-
-### Recharger les intégrations personnalisées
-Dans Home Assistant :
-1. Allez dans **Outils de développement**
-2. Onglet **YAML**
-3. Cliquez sur "Recharger les intégrations personnalisées" (si disponible)
-
-Sinon, redémarrez complètement Home Assistant.
-
-## ?? Besoin d'aide ?
-
-Si vous rencontrez toujours des problèmes :
-
-1. **Activez le mode debug** dans `configuration.yaml` :
 ```yaml
 logger:
   default: info
@@ -148,10 +54,4 @@ logger:
     custom_components.alarme_personnalisee: debug
 ```
 
-2. **Redémarrez** Home Assistant
-
-3. **Récupérez les logs** et partagez-les pour analyse
-
-4. **Vérifiez la version** de Home Assistant :
-   - Minimum requis : 2024.1.0
-   - Recommandé : Dernière version stable
+Version minimale requise : Home Assistant 2025.11.

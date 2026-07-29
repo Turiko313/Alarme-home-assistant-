@@ -3,7 +3,10 @@
     "step": {
       "user": {
         "title": "Custom Alarm",
-        "description": "Configure your custom alarm"
+        "description": "Create a virtual alarm controlled by your Home Assistant sensors.",
+        "data": {
+          "name": "Alarm name"
+        }
       }
     }
   },
@@ -19,7 +22,7 @@
       },
       "general": {
         "title": "General Settings",
-        "description": "Alarm configuration",
+        "description": "Configure codes, delays, and automatic rearming.",
         "data": {
           "code": "PIN Code (optional)",
           "require_arm_code": "Require code to arm",
@@ -33,7 +36,7 @@
       },
       "sensors": {
         "title": "Sensor Configuration",
-        "description": "Select sensors for each mode",
+        "description": "Select the binary sensors monitored in each mode.",
         "data": {
           "away_sensors": "Away mode sensors",
           "home_sensors": "Home mode sensors",
@@ -42,60 +45,78 @@
       },
       "badges": {
         "title": "Badge Management",
-        "description": "{badges_list}",
+        "description": "Authorized badges:\n{badges_list}",
         "data": {
           "action": "Action"
         }
       },
       "add_badge": {
         "title": "Add Badge",
-        "description": "Configure a new RFID/NFC badge",
+        "description": "Enter the exact state emitted by the reader for this badge. Use `on` for a dedicated binary sensor.",
         "data": {
-          "badge_name": "Badge Name",
-          "badge_entity": "Reader Entity"
+          "badge_name": "Badge name",
+          "badge_entity": "Reader entity",
+          "badge_value": "Expected reader value"
         }
       },
       "remove_badge": {
         "title": "Remove Badge",
-        "description": "Select the badge to remove",
         "data": {
           "badge_to_remove": "Badge to remove"
         }
       }
+    },
+    "error": {
+      "badge_already_configured": "This reader and badge value are already configured."
     }
   },
   "entity": {
     "button": {
       "reset_trigger_count": {
-        "name": "Reset Trigger Count"
+        "name": "Reset trigger count"
       }
     },
     "sensor": {
       "trigger_count": {
-        "name": "Trigger Count"
+        "name": "Trigger count"
       },
       "last_triggered_by": {
-        "name": "Last Triggered By"
+        "name": "Last triggered by"
       },
       "last_changed_at": {
-        "name": "Last Changed"
+        "name": "Last changed"
       }
     },
     "switch": {
       "rearm_after_trigger": {
-        "name": "Rearm After Trigger"
+        "name": "Rearm after trigger"
       }
     },
     "number": {
       "arming_time": {
-        "name": "Arming Delay"
+        "name": "Arming delay"
       },
       "delay_time": {
-        "name": "Entry Delay"
+        "name": "Entry delay"
       },
       "trigger_time": {
-        "name": "Trigger Duration"
+        "name": "Trigger duration"
       }
+    }
+  },
+  "exceptions": {
+    "invalid_alarm_entity": {
+      "message": "{entity_id} is not an alarm entity provided by this integration."
+    }
+  },
+  "issues": {
+    "unavailable_sensors": {
+      "title": "Security sensors unavailable for {alarm_name}",
+      "description": "The alarm cannot monitor every configured zone because these entities are missing, unknown, or unavailable:\n\n{sensors}\n\nCheck their power, network connection, and source integration. This issue will disappear automatically when all entities become available again."
+    },
+    "bypassed_sensors": {
+      "title": "Zones temporarily bypassed for {alarm_name}",
+      "description": "The alarm is armed, but these zones are temporarily bypassed because they were not closed:\n\n{sensors}\n\nEach zone will automatically return to active protection as soon as it reports `off`. A later change to `on` will then trigger the alarm normally."
     }
   }
 }

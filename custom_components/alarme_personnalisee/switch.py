@@ -1,67 +1,61 @@
-"""Switch entities for Alarme Personnalisee."""
+"""Switch entities for Alarme Personnalisée."""
+
 from __future__ import annotations
 
-import logging
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
+from .const import CONF_REARM_AFTER_TRIGGER
+from .entity import alarm_device_info
+from .runtime_data import AlarmConfigEntry
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: AlarmConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up switch entities."""
-    async_add_entities([RearmAfterTriggerSwitch(hass, entry)])
+    async_add_entities([RearmAfterTriggerSwitch(entry)])
 
 
 class RearmAfterTriggerSwitch(SwitchEntity):
-    """Switch to enable/disable rearm after trigger."""
+    """Switch that controls automatic rearming."""
 
     _attr_has_entity_name = True
+    _attr_translation_key = "rearm_after_trigger"
     _attr_icon = "mdi:reload"
+    _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, entry: AlarmConfigEntry) -> None:
         """Initialize the switch."""
-        self.hass = hass
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_rearm_after_trigger"
-        self._attr_name = "Rearmer apres declenchement"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "Alarme Personnalisee",
-            "manufacturer": "Custom",
-            "model": "Alarme Personnalisee",
-        }
-        self._update_state()
 
-    def _update_state(self) -> None:
-        """Update state from config entry options."""
-        self._attr_is_on = self._entry.options.get("rearm_after_trigger", False)
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device information."""
+        return alarm_device_info(self._entry)
 
     @property
     def is_on(self) -> bool:
-        """Return true if switch is on."""
-        return self._entry.options.get("rearm_after_trigger", False)
+        """Return whether automatic rearming is enabled."""
+        return self._entry.options.get(CONF_REARM_AFTER_TRIGGER, False)
 
     async def async_turn_on(self, **kwargs) -> None:
-        """Turn the switch on."""
-        new_options = {**self._entry.options, "rearm_after_trigger": True}
-        self.hass.config_entries.async_update_entry(self._entry, options=new_options)
-        self._attr_is_on = True
-        self.async_write_ha_state()
-        _LOGGER.info("Rearm after trigger enabled")
+        """Enable automatic rearming."""
+        self._set_option(True)
 
     async def async_turn_off(self, **kwargs) -> None:
-        """Turn the switch off."""
-        new_options = {**self._entry.options, "rearm_after_trigger": False}
+        """Disable automatic rearming."""
+        self._set_option(False)
+
+    def _set_option(self, enabled: bool) -> None:
+        """Store the switch option."""
+        new_options = {
+            **self._entry.options,
+            CONF_REARM_AFTER_TRIGGER: enabled,
+        }
         self.hass.config_entries.async_update_entry(self._entry, options=new_options)
-        self._attr_is_on = False
-        self.async_write_ha_state()
-        _LOGGER.info("Rearm after trigger disabled")

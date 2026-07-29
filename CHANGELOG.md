@@ -1,194 +1,258 @@
 # Changelog
 
-Toutes les modifications notables de ce projet seront documentées dans ce fichier.
+Toutes les modifications notables de ce projet seront documentÃ©es dans ce fichier.
 
-Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
+Le format est basÃ© sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
+et ce projet adhÃ¨re au [Semantic Versioning](https://semver.org/lang/fr/).
+
+## [1.6.2] - 2026-07-29
+
+### AjoutÃ©
+
+- Nom convivial du capteur responsable dans l'attribut `triggered_by_name` et l'Ã©vÃ©nement `alarme_personnalisee.triggered`.
+- Notification systÃ¨me Home Assistant indiquant le nom et l'identifiant du capteur responsable au dÃ©clenchement.
+- Bandeau visible dans la carte Lovelace pendant le dÃ©lai d'entrÃ©e et le dÃ©clenchement.
+- Exemples de notifications indiquant le nom et l'identifiant du capteur responsable.
+- Couverture de tests supÃ©rieure Ã  95 %, avec le flux de configuration entiÃ¨rement couvert et un seuil CI fixÃ© Ã  95 %.
+
+## [1.6.1] - 2026-07-29
+
+### ModifiÃ©
+
+- L'armement continue lorsqu'une zone du mode demandÃ© est ouverte, inconnue, indisponible ou absente.
+- Ces zones sont temporairement contournÃ©es, puis rÃ©intÃ©grÃ©es automatiquement dÃ¨s leur retour Ã  `off`.
+- Une ouverture ultÃ©rieure d'une zone rÃ©intÃ©grÃ©e dÃ©clenche normalement le dÃ©lai d'entrÃ©e.
+
+### AjoutÃ©
+
+- Attribut `bypassed_sensors`, alerte Repairs et Ã©vÃ©nement `alarme_personnalisee.bypassed_sensors_changed`.
+- Affichage des zones contournÃ©es dans la carte Lovelace.
+- Tests du cycle complet ouverture, contournement, fermeture, rÃ©intÃ©gration et nouvelle ouverture.
+
+## [1.6.0] - 2026-07-29
+
+### AjoutÃ©
+
+- Restauration du mode armÃ©, du compteur et des derniÃ¨res informations aprÃ¨s un redÃ©marrage.
+- Alerte Repairs lorsque des zones ou lecteurs de badge sont absents, inconnus ou indisponibles.
+- Ã‰vÃ©nement `alarme_personnalisee.sensor_availability_changed` utilisable pour les notifications personnelles.
+- Carte Lovelace `custom:alarme-personnalisee-card` responsive, avec commandes, PIN temporaire, statistiques et Ã©tat des zones.
+- Tests de restauration et de cycle de vie des alertes Repairs.
+
+### SÃ©curitÃ©
+
+- Les Ã©tats transitoires (`arming`, `pending`, `triggered`) ne reprennent pas un ancien minuteur aprÃ¨s redÃ©marrage : l'intÃ©gration restaure directement le dernier mode armÃ© connu.
+- Une alerte de niveau erreur signale immÃ©diatement une protection rÃ©duite due Ã  un capteur indisponible.
+
+## [1.5.0] - 2026-07-29
+
+### CorrigÃ©
+
+- CompatibilitÃ© avec la propriÃ©tÃ© `alarm_state` de Home Assistant 2025.11+.
+- Valeur `datetime` valide pour le capteur d'horodatage.
+- Refus d'armer lorsqu'un capteur surveillÃ© est dÃ©jÃ  actif.
+- VÃ©rification exacte de la valeur des badges provenant d'un lecteur `sensor`.
+- Ciblage correct de l'alarme par le bouton, les capteurs et le service, y compris avec plusieurs instances.
+- Conservation des temporisations actives lors d'une modification d'option.
+- Valeur par dÃ©faut correcte de 180 secondes pour la durÃ©e de dÃ©clenchement.
+- Cycle de vie du service de rÃ©initialisation et des abonnements.
+- Encodage UTF-8 des fichiers du dÃ©pÃ´t.
+
+### AjoutÃ©
+
+- Tests fonctionnels automatisÃ©s et contrÃ´le Ruff.
+- Noms traduits et catÃ©gories pour les entitÃ©s.
+- Ã‰vÃ©nements `alarme_personnalisee.armed` et `alarme_personnalisee.disarmed`.
+
+### SupprimÃ©
+
+- Ancien panneau HTML non enregistrÃ© et non fonctionnel.
+- Module de services dupliquÃ© et invalide.
 
 ## [1.4.1] - 2025-12-29
-### Corrigé et Optimisé
-- Nettoyage des timers (prévention des fuites mémoire) dans `alarm_control_panel.py`.
+### CorrigÃ© et OptimisÃ©
+- Nettoyage des timers (prÃ©vention des fuites mÃ©moire) dans `alarm_control_panel.py`.
 - Corrections mineures pour robustesse.
 
 ## [1.4.0] - 2025-12-28
 
-### Ajouté
-- **?? Système de badges RFID/NFC** : Désarmement automatique via badges
-  - Configuration de badges avec noms personnalisés
+### AjoutÃ©
+- **?? SystÃ¨me de badges RFID/NFC** : DÃ©sarmement automatique via badges
+  - Configuration de badges avec noms personnalisÃ©s
   - Support de multiples lecteurs (sensors ou binary_sensors)
-  - Événement `alarme_personnalisee.badge_disarm` émis à chaque utilisation
-  - Logs détaillés de qui a désarmé et quand
-  - Gestion complète via interface UI (ajout/suppression)
+  - Ã‰vÃ©nement `alarme_personnalisee.badge_disarm` Ã©mis Ã  chaque utilisation
+  - Logs dÃ©taillÃ©s de qui a dÃ©sarmÃ© et quand
+  - Gestion complÃ¨te via interface UI (ajout/suppression)
 
-### Modifié
-- **Configuration restructurée en menu** :
-  - Menu principal avec 3 sections : Général, Capteurs, Badges
-  - Interface plus claire et organisée
+### ModifiÃ©
+- **Configuration restructurÃ©e en menu** :
+  - Menu principal avec 3 sections : GÃ©nÃ©ral, Capteurs, Badges
+  - Interface plus claire et organisÃ©e
   - Facilite l'ajout de badges un par un
 
-### Supprimé
-- **Option "Comportement toggle"** : Supprimée pour simplifier
+### SupprimÃ©
+- **Option "Comportement toggle"** : SupprimÃ©e pour simplifier
   - Le comportement est maintenant **toujours idempotent**
-  - Armer un mode déjà actif n'a aucun effet
+  - Armer un mode dÃ©jÃ  actif n'a aucun effet
   - Plus de confusion possible
 
-### Sécurité
-- Les badges désarment l'alarme même en état PENDING ou TRIGGERED
-- Événements dédiés pour tracer l'utilisation des badges
+### SÃ©curitÃ©
+- Les badges dÃ©sarment l'alarme mÃªme en Ã©tat PENDING ou TRIGGERED
+- Ã‰vÃ©nements dÃ©diÃ©s pour tracer l'utilisation des badges
 
 ## [1.3.4] - 2025-12-28
 
-### Modifié
-- **? BREAKING CHANGE** : Le comportement toggle est maintenant **DÉSACTIVÉ PAR DÉFAUT**
-  - Comportement idempotent par défaut : Parfait pour les automatisations
-  - Armer un mode déjà actif n'a aucun effet (au lieu de désarmer)
-  - Pour réactiver le toggle : Cochez l'option dans la configuration
+### ModifiÃ©
+- **? BREAKING CHANGE** : Le comportement toggle est maintenant **DÃ‰SACTIVÃ‰ PAR DÃ‰FAUT**
+  - Comportement idempotent par dÃ©faut : Parfait pour les automatisations
+  - Armer un mode dÃ©jÃ  actif n'a aucun effet (au lieu de dÃ©sarmer)
+  - Pour rÃ©activer le toggle : Cochez l'option dans la configuration
 
 ### Raison du changement
 - La plupart des utilisateurs utilisent des automatisations
-- Le comportement toggle peut causer des désarmements accidentels
-- Plus sûr et plus prévisible pour un usage quotidien
+- Le comportement toggle peut causer des dÃ©sarmements accidentels
+- Plus sÃ»r et plus prÃ©visible pour un usage quotidien
 
 ## [1.3.3] - 2025-12-28
 
-### Ajouté
-- **Option "Comportement toggle"** : Nouvelle option pour désactiver le comportement toggle
-  - Par défaut : **Activé** (comportement actuel)
-  - Si **désactivé** : Les automatisations peuvent armer plusieurs fois sans désarmer (idempotent)
-  - Utile pour éviter que les automatisations désarment l'alarme si elle est déjà armée
+### AjoutÃ©
+- **Option "Comportement toggle"** : Nouvelle option pour dÃ©sactiver le comportement toggle
+  - Par dÃ©faut : **ActivÃ©** (comportement actuel)
+  - Si **dÃ©sactivÃ©** : Les automatisations peuvent armer plusieurs fois sans dÃ©sarmer (idempotent)
+  - Utile pour Ã©viter que les automatisations dÃ©sarment l'alarme si elle est dÃ©jÃ  armÃ©e
 
-### Modifié
+### ModifiÃ©
 - Le comportement toggle est maintenant **optionnel** et configurable
-- Quand toggle désactivé : Armer un mode déjà actif n'a aucun effet (au lieu de désarmer)
+- Quand toggle dÃ©sactivÃ© : Armer un mode dÃ©jÃ  actif n'a aucun effet (au lieu de dÃ©sarmer)
 
-### Corrigé
-- **?? BUG AUTOMATISATIONS** : Les automatisations qui arment l'alarme ne la désarment plus si elle est déjà armée (quand toggle désactivé)
+### CorrigÃ©
+- **?? BUG AUTOMATISATIONS** : Les automatisations qui arment l'alarme ne la dÃ©sarment plus si elle est dÃ©jÃ  armÃ©e (quand toggle dÃ©sactivÃ©)
 
 ## [1.3.2] - 2025-12-28
 
-### Corrigé
-- **?? ERREUR UTF-8** : Retrait de tous les accents dans les fichiers Python pour éviter les erreurs d'encodage
-  - Fichiers corrigés : `button.py`, `sensor.py`, `switch.py`, `number.py`
+### CorrigÃ©
+- **?? ERREUR UTF-8** : Retrait de tous les accents dans les fichiers Python pour Ã©viter les erreurs d'encodage
+  - Fichiers corrigÃ©s : `button.py`, `sensor.py`, `switch.py`, `number.py`
   - Les traductions avec accents restent dans les fichiers JSON (qui supportent l'UTF-8)
 
 ## [1.3.1] - 2025-12-28
 
-### Corrigé
-- **?? BUG CRITIQUE** : Les capteurs sont maintenant surveillés **pendant le délai d'armement**
-  - Avant : Si un capteur s'ouvrait pendant l'armement, l'alarme s'armait quand même
-  - Maintenant : L'armement est **annulé automatiquement** si un capteur se déclenche
-  - Un événement `alarme_personnalisee.arming_cancelled` est émis avec le capteur responsable
+### CorrigÃ©
+- **?? BUG CRITIQUE** : Les capteurs sont maintenant surveillÃ©s **pendant le dÃ©lai d'armement**
+  - Avant : Si un capteur s'ouvrait pendant l'armement, l'alarme s'armait quand mÃªme
+  - Maintenant : L'armement est **annulÃ© automatiquement** si un capteur se dÃ©clenche
+  - Un Ã©vÃ©nement `alarme_personnalisee.arming_cancelled` est Ã©mis avec le capteur responsable
 
-### Ajouté
-- Nouvel événement `alarme_personnalisee.arming_cancelled` émis quand l'armement est annulé
+### AjoutÃ©
+- Nouvel Ã©vÃ©nement `alarme_personnalisee.arming_cancelled` Ã©mis quand l'armement est annulÃ©
 
-### Sécurité
-- Amélioration significative de la sécurité : impossible d'armer avec une porte/fenêtre ouverte
+### SÃ©curitÃ©
+- AmÃ©lioration significative de la sÃ©curitÃ© : impossible d'armer avec une porte/fenÃªtre ouverte
 
 ## [1.3.0] - 2025-12-28
 
-### Ajouté
-- **Nouvelles entités pour une meilleure intégration** :
-  - `button.alarme_reset_trigger_count` : Bouton pour réinitialiser le compteur de déclenchements
-  - `sensor.alarme_trigger_count` : Capteur affichant le nombre de déclenchements
-  - `sensor.alarme_last_triggered_by` : Capteur affichant le dernier capteur déclencheur
-  - `sensor.alarme_last_changed_at` : Capteur timestamp du dernier changement d'état
-  - `switch.alarme_rearm_after_trigger` : Interrupteur pour activer/désactiver le réarmement automatique
-  - `number.alarme_arming_time` : Contrôle du délai d'armement (0-600 secondes)
-  - `number.alarme_delay_time` : Contrôle du délai d'entrée (0-600 secondes)
-  - `number.alarme_trigger_time` : Contrôle de la durée de déclenchement (0-1800 secondes)
+### AjoutÃ©
+- **Nouvelles entitÃ©s pour une meilleure intÃ©gration** :
+  - `button.alarme_reset_trigger_count` : Bouton pour rÃ©initialiser le compteur de dÃ©clenchements
+  - `sensor.alarme_trigger_count` : Capteur affichant le nombre de dÃ©clenchements
+  - `sensor.alarme_last_triggered_by` : Capteur affichant le dernier capteur dÃ©clencheur
+  - `sensor.alarme_last_changed_at` : Capteur timestamp du dernier changement d'Ã©tat
+  - `switch.alarme_rearm_after_trigger` : Interrupteur pour activer/dÃ©sactiver le rÃ©armement automatique
+  - `number.alarme_arming_time` : ContrÃ´le du dÃ©lai d'armement (0-600 secondes)
+  - `number.alarme_delay_time` : ContrÃ´le du dÃ©lai d'entrÃ©e (0-600 secondes)
+  - `number.alarme_trigger_time` : ContrÃ´le de la durÃ©e de dÃ©clenchement (0-1800 secondes)
 
-### Modifié
-- Les nouvelles entités permettent de contrôler les paramètres de l'alarme sans passer par la configuration
-- Toutes les entités sont regroupées sous un même "device" dans Home Assistant
-- Le service `reset_trigger_count` est conservé pour compatibilité
+### ModifiÃ©
+- Les nouvelles entitÃ©s permettent de contrÃ´ler les paramÃ¨tres de l'alarme sans passer par la configuration
+- Toutes les entitÃ©s sont regroupÃ©es sous un mÃªme "device" dans Home Assistant
+- Le service `reset_trigger_count` est conservÃ© pour compatibilitÃ©
 
-### Amélioré
-- Traductions françaises et anglaises complètes pour toutes les nouvelles entités
-- Les entités se mettent à jour automatiquement quand l'alarme change d'état
-- Interface plus intuitive avec des entités visibles et contrôlables
+### AmÃ©liorÃ©
+- Traductions franÃ§aises et anglaises complÃ¨tes pour toutes les nouvelles entitÃ©s
+- Les entitÃ©s se mettent Ã  jour automatiquement quand l'alarme change d'Ã©tat
+- Interface plus intuitive avec des entitÃ©s visibles et contrÃ´lables
 
 ## [1.2.1] - 2025-12-28
 
-### Corrigé
-- **Service reset_trigger_count** : Intégré directement dans `__init__.py` pour garantir son chargement
-- **Panneau HTML** : Code simplifié et robusté avec meilleure gestion des erreurs
-- **Connexion hass** : Amélioration de la détection de l'objet hass depuis l'iframe
-- **Logs de débogage** : Ajout de messages console pour faciliter le diagnostic
+### CorrigÃ©
+- **Service reset_trigger_count** : IntÃ©grÃ© directement dans `__init__.py` pour garantir son chargement
+- **Panneau HTML** : Code simplifiÃ© et robustÃ© avec meilleure gestion des erreurs
+- **Connexion hass** : AmÃ©lioration de la dÃ©tection de l'objet hass depuis l'iframe
+- **Logs de dÃ©bogage** : Ajout de messages console pour faciliter le diagnostic
 
-### Ajouté
-- **Guide de dépannage** : Fichier `TROUBLESHOOTING.md` complet avec :
-  - Checklist de vérification après installation
-  - Solutions aux problèmes courants
+### AjoutÃ©
+- **Guide de dÃ©pannage** : Fichier `TROUBLESHOOTING.md` complet avec :
+  - Checklist de vÃ©rification aprÃ¨s installation
+  - Solutions aux problÃ¨mes courants
   - Commandes utiles pour RPI5
   - Instructions de diagnostic
 
-### Modifié
-- Design du panneau simplifié avec emojis au lieu d'icônes MDI
+### ModifiÃ©
+- Design du panneau simplifiÃ© avec emojis au lieu d'icÃ´nes MDI
 - Meilleure gestion des erreurs dans le panneau
 - Messages d'erreur plus explicites
 
 ## [1.2.0] - 2025-01-XX
 
-### Ajouté
-- **Panneau personnalisé dans la barre latérale** :
+### AjoutÃ©
+- **Panneau personnalisÃ© dans la barre latÃ©rale** :
   - Nouveau panneau "Alarme" accessible directement depuis la sidebar
-  - Interface visuelle avec l'état de l'alarme en temps réel
-  - Affichage des statistiques (nombre de déclenchements, dernier capteur déclenché)
-  - Liste des capteurs surveillés par mode avec leur état actuel
-  - Journal des événements des dernières 24 heures
-  - Actions rapides : modifier les paramètres, réinitialiser le compteur, actualiser
+  - Interface visuelle avec l'Ã©tat de l'alarme en temps rÃ©el
+  - Affichage des statistiques (nombre de dÃ©clenchements, dernier capteur dÃ©clenchÃ©)
+  - Liste des capteurs surveillÃ©s par mode avec leur Ã©tat actuel
+  - Journal des Ã©vÃ©nements des derniÃ¨res 24 heures
+  - Actions rapides : modifier les paramÃ¨tres, rÃ©initialiser le compteur, actualiser
   
-### Modifié
-- Interface améliorée avec design moderne et responsive
-- Mise à jour automatique des données toutes les 5 secondes
+### ModifiÃ©
+- Interface amÃ©liorÃ©e avec design moderne et responsive
+- Mise Ã  jour automatique des donnÃ©es toutes les 5 secondes
 
 ## [1.1.0] - 2025-01-XX
 
-### Ajouté
+### AjoutÃ©
 - **Attributs enrichis** : 
-  - `triggered_count` : Compteur de déclenchements
-  - `last_triggered_by` : Dernier capteur ayant déclenché l'alarme
-  - `last_changed_at` : Horodatage du dernier changement d'état
-  - `last_armed_state` : Dernier état d'armement
-  - `monitored_sensors` : Liste des capteurs surveillés par mode
+  - `triggered_count` : Compteur de dÃ©clenchements
+  - `last_triggered_by` : Dernier capteur ayant dÃ©clenchÃ© l'alarme
+  - `last_changed_at` : Horodatage du dernier changement d'Ã©tat
+  - `last_armed_state` : Dernier Ã©tat d'armement
+  - `monitored_sensors` : Liste des capteurs surveillÃ©s par mode
 
-- **Événement personnalisé** : 
-  - `alarme_personnalisee.triggered` : Émis lors du déclenchement avec les détails
+- **Ã‰vÃ©nement personnalisÃ©** :
+  - `alarme_personnalisee.triggered` : Ã‰mis lors du dÃ©clenchement avec les dÃ©tails
   
-- **Service personnalisé** :
-  - `alarme_personnalisee.reset_trigger_count` : Réinitialise le compteur de déclenchements
+- **Service personnalisÃ©** :
+  - `alarme_personnalisee.reset_trigger_count` : RÃ©initialise le compteur de dÃ©clenchements
 
 - **Traductions** :
-  - Ajout de la traduction anglaise complète (en.json)
-  - Amélioration de la traduction française (fr.json)
+  - Ajout de la traduction anglaise complÃ¨te (en.json)
+  - AmÃ©lioration de la traduction franÃ§aise (fr.json)
 
 - **Documentation** :
   - Fichier `EXAMPLES.md` avec 10 exemples d'automatisations
   - Fichier `services.yaml` pour la documentation des services
   - `CHANGELOG.md` pour suivre les versions
 
-### Modifié
-- Mise à jour de la version minimale Home Assistant vers 2024.1.0
-- Amélioration du README avec toutes les nouvelles fonctionnalités
-- Mise à jour du manifest.json avec les bonnes URLs du projet
-- Amélioration de hacs.json pour une meilleure intégration HACS
+### ModifiÃ©
+- Mise Ã  jour de la version minimale Home Assistant vers 2024.1.0
+- AmÃ©lioration du README avec toutes les nouvelles fonctionnalitÃ©s
+- Mise Ã  jour du manifest.json avec les bonnes URLs du projet
+- AmÃ©lioration de hacs.json pour une meilleure intÃ©gration HACS
 
 ### Technique
 - Ajout de `dt_util` pour la gestion des horodatages
-- Meilleure gestion des données dans `hass.data`
-- Nettoyage amélioré lors du déchargement de l'intégration
+- Meilleure gestion des donnÃ©es dans `hass.data`
+- Nettoyage amÃ©liorÃ© lors du dÃ©chargement de l'intÃ©gration
 
 ## [1.0.0] - 2024-12-XX
 
-### Ajouté
-- Version initiale de l'intégration
+### AjoutÃ©
+- Version initiale de l'intÃ©gration
 - Support des modes Armed Home, Armed Away et Armed Vacation
-- Comportement de bascule pour l'armement/désarmement
+- Comportement de bascule pour l'armement/dÃ©sarmement
 - Configuration via l'interface utilisateur
-- Support du code PIN avec codes séparés pour armement/désarmement
-- Code d'urgence avec événement dédié
-- Temporisations configurables (armement, entrée, déclenchement)
-- Sélection des capteurs par mode
-- Option de réarmement automatique après déclenchement
-- Compatibilité HACS
+- Support du code PIN avec codes sÃ©parÃ©s pour armement/dÃ©sarmement
+- Code d'urgence avec Ã©vÃ©nement dÃ©diÃ©
+- Temporisations configurables (armement, entrÃ©e, dÃ©clenchement)
+- SÃ©lection des capteurs par mode
+- Option de rÃ©armement automatique aprÃ¨s dÃ©clenchement
+- CompatibilitÃ© HACS

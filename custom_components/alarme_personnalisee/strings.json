@@ -2,38 +2,121 @@
   "config": {
     "step": {
       "user": {
-        "title": "Custom Alarm Setup",
-        "description": "Select the sensors to monitor in each mode.",
+        "title": "Custom Alarm",
+        "description": "Create a virtual alarm controlled by your Home Assistant sensors.",
         "data": {
-          "away_sensors": "Sensors for Away Mode",
-          "home_sensors": "Sensors for Home Mode",
-          "vacation_sensors": "Sensors for Vacation Mode"
+          "name": "Alarm name"
         }
       }
-    },
-    "abort": {
-      "already_configured": "This alarm panel is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Custom Alarm Options",
-        "description": "Here you can configure the alarm delays, PIN code, and sensor mappings.",
+        "title": "Configuration Menu",
+        "menu_options": {
+          "general": "General Settings",
+          "sensors": "Sensors",
+          "badges": "RFID/NFC Badges"
+        }
+      },
+      "general": {
+        "title": "General Settings",
+        "description": "Configure codes, delays, and automatic rearming.",
         "data": {
-          "code": "PIN Code",
-          "require_arm_code": "Require PIN to arm",
-          "require_disarm_code": "Require PIN to disarm",
-          "emergency_code": "Emergency Code (optional)",
-          "arming_time": "Arming Time (seconds)",
-          "delay_time": "Entry Delay (seconds)",
-          "trigger_time": "Trigger Duration (seconds)",
-          "rearm_after_trigger": "Rearm automatically after being triggered",
-          "away_sensors": "Sensors for Away Mode",
-          "home_sensors": "Sensors for Home Mode",
-          "vacation_sensors": "Sensors for Vacation Mode"
+          "code": "PIN Code (optional)",
+          "require_arm_code": "Require code to arm",
+          "require_disarm_code": "Require code to disarm",
+          "emergency_code": "Emergency code (optional)",
+          "arming_time": "Arming delay (seconds)",
+          "delay_time": "Entry delay (seconds)",
+          "trigger_time": "Trigger duration (seconds)",
+          "rearm_after_trigger": "Automatically rearm after trigger"
+        }
+      },
+      "sensors": {
+        "title": "Sensor Configuration",
+        "description": "Select the binary sensors monitored in each mode.",
+        "data": {
+          "away_sensors": "Away mode sensors",
+          "home_sensors": "Home mode sensors",
+          "vacation_sensors": "Vacation mode sensors"
+        }
+      },
+      "badges": {
+        "title": "Badge Management",
+        "description": "Authorized badges:\n{badges_list}",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "add_badge": {
+        "title": "Add Badge",
+        "description": "Enter the exact state emitted by the reader for this badge. Use `on` for a dedicated binary sensor.",
+        "data": {
+          "badge_name": "Badge name",
+          "badge_entity": "Reader entity",
+          "badge_value": "Expected reader value"
+        }
+      },
+      "remove_badge": {
+        "title": "Remove Badge",
+        "data": {
+          "badge_to_remove": "Badge to remove"
         }
       }
+    },
+    "error": {
+      "badge_already_configured": "This reader and badge value are already configured."
+    }
+  },
+  "entity": {
+    "button": {
+      "reset_trigger_count": {
+        "name": "Reset trigger count"
+      }
+    },
+    "sensor": {
+      "trigger_count": {
+        "name": "Trigger count"
+      },
+      "last_triggered_by": {
+        "name": "Last triggered by"
+      },
+      "last_changed_at": {
+        "name": "Last changed"
+      }
+    },
+    "switch": {
+      "rearm_after_trigger": {
+        "name": "Rearm after trigger"
+      }
+    },
+    "number": {
+      "arming_time": {
+        "name": "Arming delay"
+      },
+      "delay_time": {
+        "name": "Entry delay"
+      },
+      "trigger_time": {
+        "name": "Trigger duration"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_alarm_entity": {
+      "message": "{entity_id} is not an alarm entity provided by this integration."
+    }
+  },
+  "issues": {
+    "unavailable_sensors": {
+      "title": "Security sensors unavailable for {alarm_name}",
+      "description": "The alarm cannot monitor every configured zone because these entities are missing, unknown, or unavailable:\n\n{sensors}\n\nCheck their power, network connection, and source integration. This issue will disappear automatically when all entities become available again."
+    },
+    "bypassed_sensors": {
+      "title": "Zones temporarily bypassed for {alarm_name}",
+      "description": "The alarm is armed, but these zones are temporarily bypassed because they were not closed:\n\n{sensors}\n\nEach zone will automatically return to active protection as soon as it reports `off`. A later change to `on` will then trigger the alarm normally."
     }
   }
 }

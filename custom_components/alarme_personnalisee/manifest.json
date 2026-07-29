@@ -1,14 +1,14 @@
 {
   "domain": "alarme_personnalisee",
   "name": "Alarme Personnalisée",
-  "version": "1.4.1",
+  "version": "1.6.2",
   "documentation": "https://github.com/Turiko313/Alarme-home-assistant-",
   "issue_tracker": "https://github.com/Turiko313/Alarme-home-assistant-/issues",
   "codeowners": ["@Turiko313"],
   "config_flow": true,
   "integration_type": "hub",
   "iot_class": "calculated",
-  "homeassistant": "2024.1.0",
+  "homeassistant": "2025.11.0",
   "requirements": [],
-  "dependencies": []
+  "dependencies": ["http", "persistent_notification"]
 }

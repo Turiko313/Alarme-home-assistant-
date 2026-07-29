@@ -1,29 +1,29 @@
 ---
 name: Feature Request
-about: Suggérer une nouvelle fonctionnalité
+about: SuggÃ©rer une nouvelle fonctionnalitÃ©
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
 ---
 
-## Résumé de la fonctionnalité
-Une description claire et concise de la fonctionnalité souhaitée.
+## RÃ©sumÃ© de la fonctionnalitÃ©
+Une description claire et concise de la fonctionnalitÃ© souhaitÃ©e.
 
-## Problème résolu
-Cette fonctionnalité résout-elle un problème particulier ? Ex: "Je suis frustré quand [...]"
+## ProblÃ¨me rÃ©solu
+Cette fonctionnalitÃ© rÃ©sout-elle un problÃ¨me particulier ? Ex: "Je suis frustrÃ© quand [...]"
 
-## Solution proposée
-Une description claire de ce que vous aimeriez voir implémenté.
+## Solution proposÃ©e
+Une description claire de ce que vous aimeriez voir implÃ©mentÃ©.
 
-## Alternatives considérées
-Avez-vous envisagé des solutions alternatives ? Décrivez-les.
+## Alternatives considÃ©rÃ©es
+Avez-vous envisagÃ© des solutions alternatives ? DÃ©crivez-les.
 
 ## Cas d'usage
-Comment cette fonctionnalité serait-elle utilisée ?
+Comment cette fonctionnalitÃ© serait-elle utilisÃ©e ?
 
 ```yaml
 # Exemple de configuration ou d'utilisation
 ```
 
 ## Contexte additionnel
-Ajoutez tout autre contexte, captures d'écran ou exemples concernant la demande de fonctionnalité.
+Ajoutez tout autre contexte, captures d'Ã©cran ou exemples concernant la demande de fonctionnalitÃ©.

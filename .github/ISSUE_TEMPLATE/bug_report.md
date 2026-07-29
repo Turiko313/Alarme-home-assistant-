@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Signaler un bug ou un problème
+about: Signaler un bug ou un problÃ¨me
 title: '[BUG] '
 labels: bug
 assignees: ''
@@ -9,10 +9,10 @@ assignees: ''
 ## Description du bug
 Une description claire et concise du bug.
 
-## Étapes pour reproduire
+## Ã‰tapes pour reproduire
 1. Allez dans '...'
 2. Cliquez sur '...'
-3. Faites défiler jusqu'à '...'
+3. Faites dÃ©filer jusqu'Ã  '...'
 4. Constatez l'erreur
 
 ## Comportement attendu
@@ -22,12 +22,12 @@ Une description claire de ce qui devrait se passer.
 Une description claire de ce qui se passe actuellement.
 
 ## Screenshots
-Si applicable, ajoutez des captures d'écran pour aider à expliquer le problème.
+Si applicable, ajoutez des captures d'Ã©cran pour aider Ã  expliquer le problÃ¨me.
 
 ## Environnement
 - Version Home Assistant: [ex. 2024.1.0]
-- Version de l'intégration: [ex. 1.1.0]
-- Méthode d'installation: [HACS / Manuelle]
+- Version de l'intÃ©gration: [ex. 1.1.0]
+- MÃ©thode d'installation: [HACS / Manuelle]
 
 ## Configuration
 ```yaml
@@ -41,4 +41,4 @@ Copiez-collez les logs pertinents ici
 ```
 
 ## Contexte additionnel
-Ajoutez tout autre contexte utile concernant le problème.
+Ajoutez tout autre contexte utile concernant le problÃ¨me.

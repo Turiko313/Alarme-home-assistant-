@@ -31,6 +31,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .pytest_cache/
+.ruff_cache/
 
 # IDEs
 .vscode/
