@@ -18,6 +18,8 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
 -   **Déclencheurs personnalisables :** Définissez les capteurs qui déclencheront l'alarme.
 -   **Suivi avancé :** Compteur de déclenchements, dernier capteur déclenché, horodatage des changements.
 -   **Restauration après redémarrage :** Le mode armé et le compteur de déclenchements sont restaurés automatiquement.
+-   **Démarrage sécurisé :** Une période de grâce laisse aux intégrations et capteurs le temps de démarrer avant les contrôles de disponibilité.
+-   **Mode Présence au démarrage :** Si aucun mode armé n'est restauré, l'alarme peut s'armer automatiquement en mode Présence.
 -   **Surveillance de disponibilité :** Une alerte Repairs apparaît si une zone ou un lecteur de badge est absent, inconnu ou indisponible.
 -   **Armement avec zone ouverte :** L'alarme s'arme quand même, signale les zones ouvertes ou inconnues et les réintègre automatiquement après leur fermeture.
 -   **Événements personnalisés :** Événements pour les déclenchements et les désarmements d'urgence.
@@ -47,6 +49,7 @@ Ce composant personnalisé pour Home Assistant vous permet de créer une alarme 
 3.  Suivez les instructions à l'écran pour configurer votre alarme :
     *   **Code d'armement/désarmement :** Définissez un code PIN (optionnel).
     *   **Temporisations :** Configurez les délais d'armement, d'entrée et de déclenchement.
+    *   **Démarrage :** Configurez le délai de grâce et l'armement automatique en mode Présence.
     *   **Capteurs :** Sélectionnez les capteurs pour chaque mode d'alarme.
     *   **Badges RFID/NFC :** Configurez des badges pour le désarmement automatique (optionnel).
 
@@ -58,10 +61,38 @@ L'intégration supporte le désarmement automatique via badges RFID/NFC. Cette f
 
 1.  Allez dans **Paramètres** > **Appareils et services** > **Alarme Personnalisée** > **Configurer**.
 2.  Accédez à l'onglet **Badges**.
-3.  Ajoutez vos badges un par un :
-    *   **Nom du badge :** Un nom convivial (ex: "Badge Papa", "Badge Maman")
+3.  Les badges déjà configurés sont regroupés par **nom familier**, avec le nombre de badges et le détail de chaque lecteur/valeur.
+4.  Choisissez l'action souhaitée :
+    *   **Ajouter une personne ou un badge :** crée un nouveau nom familier ou ajoute librement une identification.
+    *   **Ajouter un badge à un nom existant :** associe un deuxième badge, porte-clés ou téléphone à la même personne.
+    *   **Modifier un badge :** permet de changer son nom familier, son lecteur ou sa valeur.
+    *   **Supprimer un badge :** retire uniquement l'identification sélectionnée.
+5.  Pour chaque badge :
+    *   **Nom familier :** Le nom de la personne (ex: "Papa", "Maman"). Plusieurs badges peuvent porter ce même nom.
     *   **Lecteur NFC :** Sélectionnez le capteur ou capteur binaire qui détecte les badges.
     *   **Valeur attendue :** Saisissez exactement la valeur renvoyée par le lecteur pour ce badge (ex: `AB:CD:EF:12:34:56`). Pour un capteur binaire dédié, utilisez `on`.
+
+Cette évolution reste compatible avec les configurations existantes : aucun badge n'est déplacé ou recréé.
+
+## Comportement au démarrage
+
+Par défaut, l'intégration attend **30 secondes** après le démarrage complet de Home Assistant avant de contrôler la disponibilité des capteurs. Pendant cette période :
+
+- aucun avertissement Repairs n'est créé pour un capteur qui n'a pas encore restauré son état ;
+- les changements transitoires des capteurs et lecteurs de badge sont ignorés ;
+- aucune ouverture de démarrage ne peut déclencher l'alarme par erreur.
+
+Après ce délai :
+
+- si l'alarme était armée avant le redémarrage, son mode précédent reste prioritaire ;
+- si elle était désarmée, elle démarre un armement normal en mode **Présence** lorsque l'option correspondante est activée ;
+- une zone encore ouverte ou inconnue est contournée temporairement, puis réintégrée à sa fermeture ;
+- une commande manuelle envoyée pendant le délai n'est jamais remplacée par l'armement automatique.
+
+Ces deux réglages sont disponibles dans **Configurer > Paramètres généraux** :
+
+- **Délai de grâce au démarrage**, réglable de 0 à 300 secondes ;
+- **Armer en mode Présence après le démarrage**, activé par défaut.
 
 ### Lecteurs compatibles
 
@@ -106,7 +137,7 @@ L'intégration fournit désormais sa propre carte moderne, sans dépendance à `
 
 Dans **Paramètres > Tableaux de bord > Ressources**, ajoutez :
 
-- URL : `/alarme_personnalisee/alarme-personnalisee-card.js?v=1.6.2`
+- URL : `/alarme_personnalisee/alarme-personnalisee-card.js?v=1.6.3`
 - Type : **Module JavaScript**
 
 Rechargez ensuite complètement le navigateur. Lors d'une future mise à jour, adaptez le numéro après `?v=` pour éviter de conserver une ancienne version en cache.

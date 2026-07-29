@@ -15,6 +15,8 @@ EVENT_BYPASSED_SENSORS_CHANGED = f"{DOMAIN}.bypassed_sensors_changed"
 DEFAULT_ARMING_TIME = 30
 DEFAULT_DELAY_TIME = 30
 DEFAULT_TRIGGER_TIME = 180
+DEFAULT_STARTUP_DELAY = 30
+DEFAULT_ARM_HOME_ON_START = True
 DEFAULT_CODE = ""
 
 # Attribute keys
@@ -39,6 +41,8 @@ CONF_ARMING_TIME = "arming_time"
 CONF_DELAY_TIME = "delay_time"
 CONF_TRIGGER_TIME = "trigger_time"
 CONF_REARM_AFTER_TRIGGER = "rearm_after_trigger"
+CONF_STARTUP_DELAY = "startup_delay"
+CONF_ARM_HOME_ON_START = "arm_home_on_start"
 CONF_AWAY_SENSORS = "away_sensors"
 CONF_HOME_SENSORS = "home_sensors"
 CONF_VACATION_SENSORS = "vacation_sensors"

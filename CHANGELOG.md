@@ -5,6 +5,23 @@ Toutes les modifications notables de ce projet seront documentées dans ce fichi
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.6.3] - 2026-07-29
+
+### Ajouté
+
+- Affichage des badges RFID/NFC existants regroupés par nom familier.
+- Possibilité d'associer plusieurs badges, lecteurs ou téléphones à une même personne.
+- Modification individuelle du nom, du lecteur et de la valeur attendue d'un badge existant.
+- Sélection plus lisible lors de la modification ou de la suppression d'un badge.
+- Délai de grâce configurable au démarrage avant la surveillance et les alertes Repairs.
+- Armement automatique configurable en mode Présence lorsque l'état restauré est désarmé.
+- Priorité au mode armé restauré et aux commandes manuelles reçues pendant le délai de grâce.
+
+### Compatibilité
+
+- Le format de configuration reste inchangé : les badges existants sont regroupés automatiquement sans migration.
+- Les états de capteurs reçus pendant le délai de grâce sont ignorés afin d'éviter les faux déclenchements et faux défauts.
+
 ## [1.6.2] - 2026-07-29
 
 ### Ajouté

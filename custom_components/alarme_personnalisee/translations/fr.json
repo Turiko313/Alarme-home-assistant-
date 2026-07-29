@@ -31,7 +31,9 @@
           "arming_time": "Délai d'armement (secondes)",
           "delay_time": "Délai d'entrée (secondes)",
           "trigger_time": "Durée de déclenchement (secondes)",
-          "rearm_after_trigger": "Réarmer automatiquement après déclenchement"
+          "rearm_after_trigger": "Réarmer automatiquement après déclenchement",
+          "startup_delay": "Délai de grâce au démarrage (secondes)",
+          "arm_home_on_start": "Armer en mode Présence après le démarrage"
         }
       },
       "sensors": {
@@ -45,16 +47,35 @@
       },
       "badges": {
         "title": "Gestion des badges",
-        "description": "Badges autorisés :\n{badges_list}",
+        "description": "Badges autorisés regroupés par nom familier :\n\n{badges_list}",
         "data": {
           "action": "Action"
         }
       },
       "add_badge": {
-        "title": "Ajouter un badge",
-        "description": "Saisissez la valeur exacte renvoyée par le lecteur pour ce badge. Utilisez `on` pour un capteur binaire dédié.",
+        "title": "Ajouter une personne ou un badge",
+        "description": "Saisissez un nom familier et la valeur exacte renvoyée par le lecteur. Un même nom peut posséder plusieurs badges.",
         "data": {
-          "badge_name": "Nom du badge",
+          "badge_name": "Nom familier",
+          "badge_entity": "Entité du lecteur",
+          "badge_value": "Valeur attendue du lecteur"
+        }
+      },
+      "add_badge_to_name": {
+        "title": "Ajouter un badge à un nom existant",
+        "description": "Choisissez la personne, puis renseignez son lecteur et la valeur de son badge supplémentaire.",
+        "data": {
+          "badge_owner": "Nom familier existant",
+          "badge_entity": "Entité du lecteur",
+          "badge_value": "Valeur attendue du lecteur"
+        }
+      },
+      "edit_badge": {
+        "title": "Modifier un badge",
+        "description": "Sélectionnez un badge, puis modifiez son nom familier, son lecteur ou sa valeur attendue.",
+        "data": {
+          "badge_to_edit": "Badge à modifier",
+          "badge_name": "Nom familier",
           "badge_entity": "Entité du lecteur",
           "badge_value": "Valeur attendue du lecteur"
         }

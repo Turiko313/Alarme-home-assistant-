@@ -31,7 +31,9 @@
           "arming_time": "Arming delay (seconds)",
           "delay_time": "Entry delay (seconds)",
           "trigger_time": "Trigger duration (seconds)",
-          "rearm_after_trigger": "Automatically rearm after trigger"
+          "rearm_after_trigger": "Automatically rearm after trigger",
+          "startup_delay": "Startup grace period (seconds)",
+          "arm_home_on_start": "Arm in Home mode after startup"
         }
       },
       "sensors": {
@@ -45,16 +47,35 @@
       },
       "badges": {
         "title": "Badge Management",
-        "description": "Authorized badges:\n{badges_list}",
+        "description": "Authorized badges grouped by friendly name:\n\n{badges_list}",
         "data": {
           "action": "Action"
         }
       },
       "add_badge": {
-        "title": "Add Badge",
-        "description": "Enter the exact state emitted by the reader for this badge. Use `on` for a dedicated binary sensor.",
+        "title": "Add a person or badge",
+        "description": "Enter a friendly name and the exact value emitted by the reader. The same friendly name can own several badges.",
         "data": {
-          "badge_name": "Badge name",
+          "badge_name": "Friendly name",
+          "badge_entity": "Reader entity",
+          "badge_value": "Expected reader value"
+        }
+      },
+      "add_badge_to_name": {
+        "title": "Add a badge to an existing name",
+        "description": "Choose the person, then enter their additional reader and badge value.",
+        "data": {
+          "badge_owner": "Existing friendly name",
+          "badge_entity": "Reader entity",
+          "badge_value": "Expected reader value"
+        }
+      },
+      "edit_badge": {
+        "title": "Edit Badge",
+        "description": "Select a badge, then change its friendly name, reader, or expected value.",
+        "data": {
+          "badge_to_edit": "Badge to edit",
+          "badge_name": "Friendly name",
           "badge_entity": "Reader entity",
           "badge_value": "Expected reader value"
         }

@@ -43,6 +43,7 @@ from .const import (
     ATTR_TRIGGERED_BY,
     ATTR_TRIGGERED_BY_NAME,
     ATTR_TRIGGERED_COUNT,
+    CONF_ARM_HOME_ON_START,
     CONF_ARMING_TIME,
     CONF_AWAY_SENSORS,
     CONF_BADGE_ENTITY,
@@ -56,11 +57,14 @@ from .const import (
     CONF_REARM_AFTER_TRIGGER,
     CONF_REQUIRE_ARM_CODE,
     CONF_REQUIRE_DISARM_CODE,
+    CONF_STARTUP_DELAY,
     CONF_TRIGGER_TIME,
     CONF_VACATION_SENSORS,
+    DEFAULT_ARM_HOME_ON_START,
     DEFAULT_ARMING_TIME,
     DEFAULT_CODE,
     DEFAULT_DELAY_TIME,
+    DEFAULT_STARTUP_DELAY,
     DEFAULT_TRIGGER_TIME,
     DOMAIN,
     EVENT_ALARM_ARMED,
@@ -123,6 +127,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         self._unsub_sensor_listener: CALLBACK_TYPE | None = None
         self._unsub_badge_listener: CALLBACK_TYPE | None = None
         self._unsub_start_listener: CALLBACK_TYPE | None = None
+        self._startup_timer_handle: CALLBACK_TYPE | None = None
+        self._startup_ready = False
+        self._startup_state_touched = False
         self._unavailable_sensors: set[str] = set()
         self._bypassed_sensors: set[str] = set()
         self._update_options()
@@ -221,6 +228,12 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
             0, int(options.get(CONF_TRIGGER_TIME, DEFAULT_TRIGGER_TIME))
         )
         self._rearm_after_trigger = bool(options.get(CONF_REARM_AFTER_TRIGGER, False))
+        self._startup_delay = max(
+            0, int(options.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY))
+        )
+        self._arm_home_on_start = bool(
+            options.get(CONF_ARM_HOME_ON_START, DEFAULT_ARM_HOME_ON_START)
+        )
 
         self._badges = [
             badge
@@ -244,7 +257,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
     ) -> None:
         """Handle an options update without interrupting an active timer."""
         self._update_options()
-        if self.alarm_state == AlarmControlPanelState.ARMING:
+        if not self._startup_ready:
+            target_state = None
+        elif self.alarm_state == AlarmControlPanelState.ARMING:
             target_state = self._last_armed_state
         elif self.alarm_state in ARMED_STATES:
             target_state = self.alarm_state
@@ -265,7 +280,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         await self._async_restore_state()
         self._subscribe_to_state_changes()
         self._unsub_start_listener = async_at_start(
-            self.hass, self._check_sensor_availability_at_start
+            self.hass, self._schedule_startup_check
         )
         async_dispatcher_send(
             self.hass, f"{SIGNAL_STATE_UPDATED}_{self._entry.entry_id}"
@@ -279,6 +294,9 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         if self._unsub_start_listener:
             self._unsub_start_listener()
             self._unsub_start_listener = None
+        if self._startup_timer_handle:
+            self._startup_timer_handle()
+            self._startup_timer_handle = None
         self._cancel_timer()
         ir.async_delete_issue(self.hass, DOMAIN, self._unavailable_sensors_issue_id)
         ir.async_delete_issue(self.hass, DOMAIN, self._bypassed_sensors_issue_id)
@@ -358,18 +376,45 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
             self._last_changed_at = dt_util.parse_datetime(restored_changed_at)
 
     @callback
-    def _check_sensor_availability_at_start(self, hass: HomeAssistant) -> None:
-        """Check configured sensors once Home Assistant has started."""
+    def _schedule_startup_check(self, hass: HomeAssistant) -> None:
+        """Wait for integrations and devices to restore their states."""
+        self._unsub_start_listener = None
+        self._startup_timer_handle = async_call_later(
+            self.hass,
+            self._startup_delay,
+            self._finish_startup,
+        )
+
+    @callback
+    def _finish_startup(self, now: datetime) -> None:
+        """Enable monitoring and apply the configured startup alarm mode."""
+        if self._startup_ready:
+            return
+        if self._startup_timer_handle:
+            self._startup_timer_handle()
+            self._startup_timer_handle = None
+
+        self._startup_ready = True
         self._update_sensor_repairs()
         if self.alarm_state in ARMED_STATES:
             self._set_bypassed_sensors(
                 self._problematic_sensors_for_mode(self.alarm_state)
             )
             self._write_state()
+        elif (
+            self.alarm_state == AlarmControlPanelState.DISARMED
+            and self._arm_home_on_start
+            and not self._startup_state_touched
+        ):
+            self.hass.async_create_task(
+                self._arm(AlarmControlPanelState.ARMED_HOME, skip_code=True)
+            )
 
     @callback
     def _update_sensor_repairs(self) -> None:
         """Create or clear a Repairs issue for unavailable security sensors."""
+        if not self._startup_ready:
+            return
         configured_entities = set(self._all_sensors) | set(self._badge_entities)
         unavailable = {
             entity_id
@@ -526,6 +571,8 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
     @callback
     def _badge_state_changed(self, event: Event) -> None:
         """Disarm when a configured reader reports an authorized badge."""
+        if not self._startup_ready:
+            return
         self._update_sensor_repairs()
         new_state: State | None = event.data.get("new_state")
         old_state: State | None = event.data.get("old_state")
@@ -572,6 +619,8 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
     @callback
     def _sensor_state_changed(self, event: Event) -> None:
         """Handle bypass recovery and monitored sensor activation."""
+        if not self._startup_ready:
+            return
         self._update_sensor_repairs()
         new_state: State | None = event.data.get("new_state")
         old_state: State | None = event.data.get("old_state")
@@ -695,6 +744,7 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Disarm the alarm."""
+        self._startup_state_touched = True
         await self._perform_disarm(code)
 
     def _validate_disarm_code(self, code: str | None) -> tuple[bool, bool]:
@@ -739,7 +789,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
             self.hass.bus.async_fire(EVENT_EMERGENCY_DISARM, event_data)
 
     async def _arm(
-        self, state: AlarmControlPanelState, code: str | None = None
+        self,
+        state: AlarmControlPanelState,
+        code: str | None = None,
+        *,
+        skip_code: bool = False,
     ) -> None:
         """Arm the alarm in the requested mode."""
         if self.alarm_state == state:
@@ -747,7 +801,11 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
         if self.alarm_state != AlarmControlPanelState.DISARMED:
             _LOGGER.warning("Cannot arm from state %s", self.alarm_state)
             return
-        if self._require_arm_code and (not self._code or code != self._code):
+        if (
+            not skip_code
+            and self._require_arm_code
+            and (not self._code or code != self._code)
+        ):
             _LOGGER.warning("Invalid or missing code for arming")
             return
 
@@ -784,12 +842,15 @@ class AlarmePersonnaliseeEntity(AlarmControlPanelEntity, RestoreEntity):
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Arm in home mode."""
+        self._startup_state_touched = True
         await self._arm(AlarmControlPanelState.ARMED_HOME, code)
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Arm in away mode."""
+        self._startup_state_touched = True
         await self._arm(AlarmControlPanelState.ARMED_AWAY, code)
 
     async def async_alarm_arm_vacation(self, code: str | None = None) -> None:
         """Arm in vacation mode."""
+        self._startup_state_touched = True
         await self._arm(AlarmControlPanelState.ARMED_VACATION, code)

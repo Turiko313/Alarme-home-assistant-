@@ -9,6 +9,13 @@
 
 L'identifiant de l'entité dépend du nom choisi et peut avoir été modifié par l'utilisateur. Ne supposez donc pas qu'il s'agit toujours de `alarm_control_panel.alarme`.
 
+## Capteurs indisponibles juste après un redémarrage
+
+- L'intégration attend par défaut 30 secondes avant son premier contrôle de disponibilité.
+- Modifiez **Délai de grâce au démarrage** dans les paramètres généraux si certains appareils ont besoin de plus de temps.
+- Les états transitoires reçus pendant cette période ne déclenchent ni alarme ni avertissement Repairs.
+- Une fois le délai terminé, les capteurs toujours absents, inconnus ou indisponibles sont signalés normalement.
+
 ## Une zone est ouverte au moment de l'armement
 
 - L'alarme s'arme quand même et place temporairement toute zone ouverte, inconnue ou indisponible dans l'attribut `bypassed_sensors`.

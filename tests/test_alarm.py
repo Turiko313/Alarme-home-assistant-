@@ -20,6 +20,7 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.alarme_personnalisee.const import (
     ATTR_BYPASSED_SENSORS,
     ATTR_TRIGGERED_BY_NAME,
+    CONF_ARM_HOME_ON_START,
     CONF_ARMING_TIME,
     CONF_AWAY_SENSORS,
     CONF_BADGE_ENTITY,
@@ -30,7 +31,9 @@ from custom_components.alarme_personnalisee.const import (
     CONF_DELAY_TIME,
     CONF_HOME_SENSORS,
     CONF_REARM_AFTER_TRIGGER,
+    CONF_REQUIRE_ARM_CODE,
     CONF_REQUIRE_DISARM_CODE,
+    CONF_STARTUP_DELAY,
     CONF_TRIGGER_TIME,
     CONF_VACATION_SENSORS,
     DOMAIN,
@@ -48,14 +51,22 @@ BADGE_READER = "sensor.badge_reader"
 
 
 async def _setup_alarm(
-    hass: HomeAssistant, options: dict | None = None
+    hass: HomeAssistant,
+    options: dict | None = None,
+    *,
+    finish_startup: bool = True,
 ) -> tuple[AlarmConfigEntry, str]:
     """Set up one alarm and return its config entry and entity ID."""
+    normalized_options = {
+        CONF_ARM_HOME_ON_START: False,
+        CONF_STARTUP_DELAY: 300,
+        **(options or {}),
+    }
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Maison",
         data={},
-        options=options or {},
+        options=normalized_options,
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -65,6 +76,11 @@ async def _setup_alarm(
         "alarm_control_panel", DOMAIN, entry.entry_id
     )
     assert entity_id is not None
+    alarm = entry.runtime_data.alarm
+    assert alarm is not None
+    if finish_startup:
+        alarm._finish_startup(dt_util.utcnow())
+        await hass.async_block_till_done()
     return entry, entity_id
 
 
@@ -210,7 +226,12 @@ async def test_badge_requires_exact_reader_value(hass: HomeAssistant) -> None:
                     CONF_BADGE_NAME: "Alice",
                     CONF_BADGE_ENTITY: BADGE_READER,
                     CONF_BADGE_VALUE: "04-A1-B2",
-                }
+                },
+                {
+                    CONF_BADGE_NAME: "Alice",
+                    CONF_BADGE_ENTITY: BADGE_READER,
+                    CONF_BADGE_VALUE: "04-C3-D4",
+                },
             ]
         },
     )
@@ -221,7 +242,7 @@ async def test_badge_requires_exact_reader_value(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == AlarmControlPanelState.ARMED_AWAY
 
-    hass.states.async_set(BADGE_READER, "04-A1-B2")
+    hass.states.async_set(BADGE_READER, "04-C3-D4")
     await hass.async_block_till_done()
     assert hass.states.get(entity_id).state == AlarmControlPanelState.DISARMED
 
@@ -397,6 +418,107 @@ async def test_restored_alarm_bypasses_active_zone(hass: HomeAssistant) -> None:
     state = hass.states.get(entity_id)
     assert state.state == AlarmControlPanelState.ARMED_AWAY
     assert state.attributes[ATTR_BYPASSED_SENSORS] == [FRONT_DOOR]
+
+
+async def test_startup_grace_waits_for_sensors_then_arms_home(
+    hass: HomeAssistant,
+) -> None:
+    """Startup waits for sensors and then arms Home even when a code is required."""
+    entry, entity_id = await _setup_alarm(
+        hass,
+        {
+            CONF_HOME_SENSORS: [FRONT_DOOR],
+            CONF_ARM_HOME_ON_START: True,
+            CONF_STARTUP_DELAY: 60,
+            CONF_ARMING_TIME: 10,
+            CONF_CODE: "2468",
+            CONF_REQUIRE_ARM_CODE: True,
+        },
+        finish_startup=False,
+    )
+    alarm = entry.runtime_data.alarm
+    assert alarm is not None
+    issue_id = f"{ISSUE_UNAVAILABLE_SENSORS}_{entry.entry_id}"
+
+    assert hass.states.get(entity_id).state == AlarmControlPanelState.DISARMED
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+    hass.states.async_set(FRONT_DOOR, STATE_OFF)
+    await hass.async_block_till_done()
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+
+    alarm._finish_startup(dt_util.utcnow())
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == AlarmControlPanelState.ARMING
+    assert hass.states.get(entity_id).attributes[ATTR_BYPASSED_SENSORS] == []
+
+    _finish_arming(entry)
+    assert hass.states.get(entity_id).state == AlarmControlPanelState.ARMED_HOME
+
+
+async def test_restored_mode_has_priority_and_ignores_startup_sensor_noise(
+    hass: HomeAssistant,
+) -> None:
+    """A restored armed mode is kept and startup sensor noise is only bypassed."""
+    hass.states.async_set(FRONT_DOOR, STATE_OFF)
+    mock_restore_cache(
+        hass,
+        [
+            State(
+                "alarm_control_panel.maison",
+                AlarmControlPanelState.ARMED_AWAY,
+                {"last_armed_state": AlarmControlPanelState.ARMED_AWAY},
+            )
+        ],
+    )
+    entry, entity_id = await _setup_alarm(
+        hass,
+        {
+            CONF_AWAY_SENSORS: [FRONT_DOOR],
+            CONF_ARM_HOME_ON_START: True,
+            CONF_STARTUP_DELAY: 60,
+        },
+        finish_startup=False,
+    )
+    alarm = entry.runtime_data.alarm
+    assert alarm is not None
+
+    hass.states.async_set(FRONT_DOOR, STATE_ON)
+    await hass.async_block_till_done()
+    assert hass.states.get(entity_id).state == AlarmControlPanelState.ARMED_AWAY
+
+    alarm._finish_startup(dt_util.utcnow())
+    await hass.async_block_till_done()
+    state = hass.states.get(entity_id)
+    assert state.state == AlarmControlPanelState.ARMED_AWAY
+    assert state.attributes[ATTR_BYPASSED_SENSORS] == [FRONT_DOOR]
+
+
+async def test_manual_command_during_startup_prevents_automatic_home_arm(
+    hass: HomeAssistant,
+) -> None:
+    """A deliberate user command during the grace period is never overridden."""
+    entry, entity_id = await _setup_alarm(
+        hass,
+        {
+            CONF_ARM_HOME_ON_START: True,
+            CONF_STARTUP_DELAY: 60,
+        },
+        finish_startup=False,
+    )
+    alarm = entry.runtime_data.alarm
+    assert alarm is not None
+
+    await hass.services.async_call(
+        "alarm_control_panel",
+        "alarm_disarm",
+        {ATTR_ENTITY_ID: entity_id},
+        blocking=True,
+    )
+    alarm._finish_startup(dt_util.utcnow())
+    await hass.async_block_till_done()
+
+    assert hass.states.get(entity_id).state == AlarmControlPanelState.DISARMED
 
 
 async def test_restores_transient_and_invalid_states(hass: HomeAssistant) -> None:
